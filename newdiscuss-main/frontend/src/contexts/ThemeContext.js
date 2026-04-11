@@ -11,16 +11,18 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    // Remove all theme classes
-    root.classList.remove('dark', 'discuss', 'discuss-light');
-    
-    // Add appropriate theme class
+    // Remove all theme classes (including new discuss-black)
+    root.classList.remove('dark', 'discuss', 'discuss-light', 'discuss-black');
+
     if (theme === 'dark') {
       root.classList.add('dark');
     } else if (theme === 'discuss-light') {
       root.classList.add('discuss', 'discuss-light');
+    } else if (theme === 'discuss-black') {
+      root.classList.add('discuss-black');
     }
-    
+    // 'light' = no extra class (default)
+
     localStorage.setItem('discuss_theme', theme);
   }, [theme]);
 

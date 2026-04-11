@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -346,3 +346,279 @@
   background: rgba(96, 165, 250, 0.3);
   color: #F1F5F9;
 }
+
+/* ============================================================
+   DISCUSS BLACK THEME
+   Primary:   #FF007F  (hot pink)
+   Secondary: #FF8C00  (orange)
+   Tertiary:  #7000FF  (purple)
+   Neutral:   #0D0D12  (near black)
+   Headlines: Space Grotesk
+   Body:      Manrope
+   Labels:    Inter
+   ============================================================ */
+
+/* CSS custom properties override for Discuss Black */
+.discuss-black {
+  --db-bg:        #0D0D12;
+  --db-surface:   #13131A;
+  --db-surface2:  #1A1A24;
+  --db-border:    rgba(255, 0, 127, 0.15);
+  --db-border2:   rgba(255, 140, 0, 0.12);
+  --db-primary:   #FF007F;
+  --db-secondary: #FF8C00;
+  --db-tertiary:  #7000FF;
+  --db-text:      #F5F5FA;
+  --db-muted:     #9090A8;
+  --db-pink-glow: 0 0 24px rgba(255, 0, 127, 0.25), 0 0 8px rgba(255, 0, 127, 0.15);
+  --db-orange-glow: 0 0 20px rgba(255, 140, 0, 0.2), 0 0 6px rgba(255, 140, 0, 0.1);
+
+  /* Override shadcn CSS vars */
+  --background: 240 14% 6%;
+  --foreground: 240 11% 97%;
+  --card: 240 14% 9%;
+  --card-foreground: 240 11% 97%;
+  --popover: 240 14% 9%;
+  --popover-foreground: 240 11% 97%;
+  --primary: 330 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 33 100% 50%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 240 14% 12%;
+  --muted-foreground: 240 9% 56%;
+  --accent: 270 100% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 330 100% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 330 100% 50%;
+  --input: 240 14% 12%;
+  --ring: 330 100% 50%;
+  --radius: 0.5rem;
+}
+
+/* Background & base typography */
+.discuss-black body {
+  background-color: #0D0D12 !important;
+  color: #F5F5FA !important;
+  font-family: 'Manrope', 'Inter', sans-serif !important;
+}
+
+.discuss-black h1,
+.discuss-black h2,
+.discuss-black h3,
+.discuss-black h4,
+.discuss-black h5,
+.discuss-black h6,
+.discuss-black .font-heading {
+  font-family: 'Space Grotesk', sans-serif !important;
+}
+
+.discuss-black label,
+.discuss-black .text-label,
+.discuss-black small {
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* Root background */
+.discuss-black,
+.discuss-black #root {
+  background-color: #0D0D12;
+  color: #F5F5FA;
+}
+
+/* ── Tailwind utility overrides for discuss-black ── */
+
+/* Surfaces / cards */
+.discuss-black .bg-white,
+.discuss-black .bg-neutral-50,
+.discuss-black .bg-\[\#F5F5F7\] {
+  background-color: #13131A !important;
+}
+
+.discuss-black .bg-neutral-100,
+.discuss-black .bg-neutral-800,
+.discuss-black .bg-\[\#1E293B\],
+.discuss-black .bg-\[\#1a1a1a\] {
+  background-color: #1A1A24 !important;
+}
+
+.discuss-black .bg-neutral-900,
+.discuss-black .bg-\[\#0F172A\],
+.discuss-black .bg-\[\#121212\] {
+  background-color: #0D0D12 !important;
+}
+
+/* Borders */
+.discuss-black .border-neutral-200,
+.discuss-black .border-\[\#E2E8F0\],
+.discuss-black .border-neutral-700,
+.discuss-black .border-\[\#334155\],
+.discuss-black .border-\[\#333333\] {
+  border-color: rgba(255, 0, 127, 0.18) !important;
+}
+
+/* Text colors */
+.discuss-black .text-neutral-900,
+.discuss-black .text-\[\#0F172A\],
+.discuss-black .text-\[\#F5F5F5\],
+.discuss-black .text-\[\#F1F5F9\] {
+  color: #F5F5FA !important;
+}
+
+.discuss-black .text-neutral-500,
+.discuss-black .text-neutral-400,
+.discuss-black .text-\[\#6275AF\],
+.discuss-black .text-\[\#94A3B8\],
+.discuss-black .text-\[\#9CA3AF\] {
+  color: #9090A8 !important;
+}
+
+/* Primary accent → hot pink */
+.discuss-black .text-\[\#2563EB\],
+.discuss-black .text-\[\#1D7AFF\],
+.discuss-black .text-\[\#60A5FA\] {
+  color: #FF007F !important;
+}
+
+.discuss-black .bg-\[\#2563EB\],
+.discuss-black .bg-\[\#1D7AFF\] {
+  background-color: #FF007F !important;
+}
+
+.discuss-black .border-\[\#2563EB\] {
+  border-color: #FF007F !important;
+}
+
+/* Hover on primary */
+.discuss-black .hover\:bg-\[\#2563EB\]\/10:hover,
+.discuss-black .hover\:bg-\[\#1D4ED8\]:hover {
+  background-color: rgba(255, 0, 127, 0.12) !important;
+}
+
+/* Secondary accent → orange */
+.discuss-black .text-\[\#10B981\],
+.discuss-black .text-\[\#F59E0B\] {
+  color: #FF8C00 !important;
+}
+
+.discuss-black .bg-\[\#10B981\] {
+  background-color: #FF8C00 !important;
+}
+
+/* Tertiary → purple */
+.discuss-black .bg-gradient-to-br {
+  background: linear-gradient(135deg, #7000FF, #FF007F) !important;
+}
+
+/* Discuss red accent → pink (keeps discuss: variants working) */
+.discuss-black .discuss\:text-\[\#EF4444\],
+.discuss-black .text-\[\#EF4444\] {
+  color: #FF007F !important;
+}
+.discuss-black .discuss\:bg-\[\#EF4444\],
+.discuss-black .bg-\[\#EF4444\] {
+  background-color: #FF007F !important;
+}
+.discuss-black .discuss\:border-\[\#EF4444\] {
+  border-color: #FF007F !important;
+}
+
+/* ── Glowing card shadows for the Black theme ── */
+.discuss-black .shadow-card,
+.discuss-black [class*="shadow-"] {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 0, 127, 0.08) !important;
+}
+
+.discuss-black .hover\:shadow-card-hover:hover {
+  box-shadow: 0 4px 20px rgba(255, 0, 127, 0.2), 0 0 0 1px rgba(255, 0, 127, 0.15) !important;
+}
+
+/* ── Scrollbars ── */
+.discuss-black ::-webkit-scrollbar-thumb {
+  background: rgba(255, 0, 127, 0.3);
+}
+.discuss-black ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 0, 127, 0.5);
+}
+
+/* ── Focus ring ── */
+.discuss-black *:focus-visible {
+  outline-color: #FF007F;
+}
+
+/* ── Selection ── */
+.discuss-black ::selection {
+  background: rgba(255, 0, 127, 0.25);
+  color: #F5F5FA;
+}
+
+/* ── Input / forms ── */
+.discuss-black input,
+.discuss-black textarea,
+.discuss-black select {
+  background-color: #1A1A24 !important;
+  border-color: rgba(255, 0, 127, 0.2) !important;
+  color: #F5F5FA !important;
+}
+
+.discuss-black input:focus,
+.discuss-black textarea:focus {
+  border-color: #FF007F !important;
+  box-shadow: 0 0 0 2px rgba(255, 0, 127, 0.2) !important;
+}
+
+/* ── Buttons ── */
+.discuss-black button[data-primary="true"],
+.discuss-black [type="submit"] {
+  background: linear-gradient(135deg, #FF007F, #7000FF) !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(255, 0, 127, 0.35) !important;
+}
+
+.discuss-black button[data-primary="true"]:hover {
+  box-shadow: 0 6px 20px rgba(255, 0, 127, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+/* ── Dropdown / Popover ── */
+.discuss-black [data-radix-popper-content-wrapper] > div,
+.discuss-black [role="menu"],
+.discuss-black [role="listbox"] {
+  background-color: #1A1A24 !important;
+  border-color: rgba(255, 0, 127, 0.2) !important;
+}
+
+/* ── Dialog ── */
+.discuss-black [role="dialog"] > div:first-child {
+  background-color: #13131A !important;
+  border-color: rgba(255, 0, 127, 0.2) !important;
+}
+
+/* ── Alert dialog ── */
+.discuss-black [role="alertdialog"] div:first-child {
+  background-color: #13131A !important;
+}
+
+/* ── Glowing gradient border for header in black theme ── */
+.discuss-black header,
+.discuss-black [data-testid="header"] {
+  border-bottom: 1px solid rgba(255, 0, 127, 0.15) !important;
+  background-color: rgba(13, 13, 18, 0.95) !important;
+  backdrop-filter: blur(12px);
+}
+
+/* ── Thread / divider lines → pink glow ── */
+.discuss-black hr,
+.discuss-black [class*="border-t"],
+.discuss-black [class*="border-b"] {
+  border-color: rgba(255, 0, 127, 0.12) !important;
+}
+
+/* ── Smooth page-level transition ── */
+.discuss-black,
+.discuss-black * {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
