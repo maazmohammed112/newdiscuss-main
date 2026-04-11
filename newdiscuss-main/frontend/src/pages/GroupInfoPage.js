@@ -359,22 +359,40 @@ export default function GroupInfoPage() {
                   <Label className="text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5] font-medium">Admin-only messaging</Label>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">Only admins can send messages</p>
                 </div>
-                <Switch checked={groupInfo?.settings?.adminOnlyMessaging || false} onCheckedChange={async (v) => {
-                  await updateGroupSettings(groupId, { ...groupInfo.settings, adminOnlyMessaging: v });
-                  setGroupInfo({ ...groupInfo, settings: { ...groupInfo.settings, adminOnlyMessaging: v } });
-                  toast.success(v ? 'Enabled' : 'Disabled');
-                }} />
+                <div style={document.documentElement.classList.contains('discuss-black') ? { '--switch-bg-off': '#2A2A38', '--switch-bg-on': '#FF007F' } : {}}>
+                  <Switch 
+                    checked={groupInfo?.settings?.adminOnlyMessaging || false} 
+                    onCheckedChange={async (v) => {
+                      await updateGroupSettings(groupId, { ...groupInfo.settings, adminOnlyMessaging: v });
+                      setGroupInfo({ ...groupInfo, settings: { ...groupInfo.settings, adminOnlyMessaging: v } });
+                      toast.success(v ? 'Enabled' : 'Disabled');
+                    }}
+                    style={document.documentElement.classList.contains('discuss-black') ? {
+                      backgroundColor: groupInfo?.settings?.adminOnlyMessaging ? '#FF007F' : '#2A2A38',
+                      borderColor: groupInfo?.settings?.adminOnlyMessaging ? '#FF007F' : 'rgba(255,0,127,0.3)',
+                    } : {}}
+                  />
+                </div>
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <Label className="text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5] font-medium flex items-center gap-1"><Clock className="w-4 h-4" />24h auto-delete</Label>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">Auto-delete messages after 24 hours</p>
                 </div>
-                <Switch checked={groupInfo?.settings?.autoDelete24h || false} onCheckedChange={async (v) => {
-                  await updateGroupSettings(groupId, { ...groupInfo.settings, autoDelete24h: v });
-                  setGroupInfo({ ...groupInfo, settings: { ...groupInfo.settings, autoDelete24h: v } });
-                  toast.success(v ? 'Enabled' : 'Disabled');
-                }} />
+                <div style={document.documentElement.classList.contains('discuss-black') ? { '--switch-bg-off': '#2A2A38', '--switch-bg-on': '#FF007F' } : {}}>
+                  <Switch 
+                    checked={groupInfo?.settings?.autoDelete24h || false} 
+                    onCheckedChange={async (v) => {
+                      await updateGroupSettings(groupId, { ...groupInfo.settings, autoDelete24h: v });
+                      setGroupInfo({ ...groupInfo, settings: { ...groupInfo.settings, autoDelete24h: v } });
+                      toast.success(v ? 'Enabled' : 'Disabled');
+                    }}
+                    style={document.documentElement.classList.contains('discuss-black') ? {
+                      backgroundColor: groupInfo?.settings?.autoDelete24h ? '#FF007F' : '#2A2A38',
+                      borderColor: groupInfo?.settings?.autoDelete24h ? '#FF007F' : 'rgba(255,0,127,0.3)',
+                    } : {}}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -413,7 +431,13 @@ export default function GroupInfoPage() {
                         </div>
                       </button>
                       {isAdmin && member.userId !== user.id && !isDeleted && (
-                        <Button size="sm" variant="outline" onClick={() => setConfirmDialog({ open: true, action: 'demote', data: member.userId })} className="text-xs shrink-0">Demote</Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => setConfirmDialog({ open: true, action: 'demote', data: member.userId })} 
+                          className="text-xs shrink-0"
+                          style={document.documentElement.classList.contains('discuss-black') ? { borderColor: '#4A4A68', color: '#C8C8E0', backgroundColor: '#1E1E28' } : {}}
+                        >Demote</Button>
                       )}
                     </div>
                   );
@@ -445,10 +469,22 @@ export default function GroupInfoPage() {
                       </button>
                       {isAdmin && !isDeleted && (
                         <div className="flex gap-1 shrink-0">
-                          <Button size="sm" variant="outline" onClick={() => setConfirmDialog({ open: true, action: 'promote', data: member.userId })} className="text-xs px-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setConfirmDialog({ open: true, action: 'promote', data: member.userId })} 
+                            className="text-xs px-2"
+                            style={document.documentElement.classList.contains('discuss-black') ? { borderColor: 'rgba(255,0,127,0.3)', color: '#FF007F', backgroundColor: 'rgba(255,0,127,0.05)' } : {}}
+                          >
                             <Shield className="w-3 h-3 mr-1" />Promote
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => setConfirmDialog({ open: true, action: 'remove', data: member.userId })} className="text-xs text-red-600 px-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => setConfirmDialog({ open: true, action: 'remove', data: member.userId })} 
+                            className="text-xs text-red-600 px-2"
+                            style={document.documentElement.classList.contains('discuss-black') ? { borderColor: 'rgba(239,68,68,0.3)', color: '#EF4444', backgroundColor: 'rgba(239,68,68,0.05)' } : {}}
+                          >
                             <UserMinus className="w-3 h-3" />
                           </Button>
                         </div>

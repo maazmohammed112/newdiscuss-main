@@ -49,10 +49,16 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { 
   FileText, LogOut, Loader2, ChevronDown, ChevronUp, 
   Calendar, Filter, ShieldCheck, User, Pencil, Trash2, Plus, Link2, X, Check, ExternalLink,
-  Info, Mail, Image as ImageIcon, Users, UserPlus, Search, Clock, MessageCircle, Share2, Bell, ArrowLeft
+  Info, Mail, Image as ImageIcon, Users, UserPlus, Search, Clock, MessageCircle, Share2, Bell, ArrowLeft, MoreHorizontal
 } from 'lucide-react';
 import { toast } from 'sonner';
 import NotificationToggle from '@/components/NotificationToggle';
@@ -628,16 +634,21 @@ export default function ProfilePage() {
                   <span className="text-[#6275AF] dark:text-[#94A3B8] text-xs font-normal">(optional)</span>
                 </label>
                 {!editingFullName && profileData?.fullName && (
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => { setEditingFullName(true); setFullNameInput(profileData.fullName || ''); }}
-                      className="p-1.5 rounded hover:bg-[#2563EB]/10 discuss:hover:bg-[#EF4444]/10 text-[#6275AF] hover:text-[#2563EB] discuss:hover:text-[#EF4444] transition-colors">
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => setDeleteFullNameConfirm(true)}
-                      className="p-1.5 rounded hover:bg-[#EF4444]/10 text-[#6275AF] hover:text-[#EF4444] transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1.5 rounded hover:bg-[#E2E8F0] dark:hover:bg-[#1E293B] discuss:hover:bg-[#1a1a1a] text-[#6275AF] dark:text-[#94A3B8] discuss:text-[#9CA3AF] transition-colors">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32 bg-white dark:bg-[#1E293B] discuss:bg-[#1a1a1a] border-[#E2E8F0] dark:border-[#334155] discuss:border-[#333333]">
+                      <DropdownMenuItem onClick={() => { setEditingFullName(true); setFullNameInput(profileData.fullName || ''); }} className="cursor-pointer text-[#0F172A] dark:text-[#F1F5F9] discuss:text-[#F5F5F5] focus:bg-[#F5F5F7] dark:focus:bg-[#0F172A] discuss:focus:bg-[#262626]">
+                        <Pencil className="w-4 h-4 mr-2" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setDeleteFullNameConfirm(true)} className="cursor-pointer text-[#EF4444] focus:bg-[#EF4444]/10 focus:text-[#EF4444]">
+                        <Trash2 className="w-4 h-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
               
@@ -677,16 +688,21 @@ export default function ProfilePage() {
                   <span className="text-[#6275AF] dark:text-[#94A3B8] text-xs font-normal">(max {BIO_CHAR_LIMIT} chars)</span>
                 </label>
                 {!editingBio && profileData?.bio && (
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => { setEditingBio(true); setBioInput(profileData.bio || ''); }}
-                      className="p-1.5 rounded hover:bg-[#2563EB]/10 discuss:hover:bg-[#EF4444]/10 text-[#6275AF] hover:text-[#2563EB] discuss:hover:text-[#EF4444] transition-colors">
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                    <button onClick={() => setDeleteBioConfirm(true)}
-                      className="p-1.5 rounded hover:bg-[#EF4444]/10 text-[#6275AF] hover:text-[#EF4444] transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="p-1.5 rounded hover:bg-[#E2E8F0] dark:hover:bg-[#1E293B] discuss:hover:bg-[#1a1a1a] text-[#6275AF] dark:text-[#94A3B8] discuss:text-[#9CA3AF] transition-colors">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-32 bg-white dark:bg-[#1E293B] discuss:bg-[#1a1a1a] border-[#E2E8F0] dark:border-[#334155] discuss:border-[#333333]">
+                      <DropdownMenuItem onClick={() => { setEditingBio(true); setBioInput(profileData.bio || ''); }} className="cursor-pointer text-[#0F172A] dark:text-[#F1F5F9] discuss:text-[#F5F5F5] focus:bg-[#F5F5F7] dark:focus:bg-[#0F172A] discuss:focus:bg-[#262626]">
+                        <Pencil className="w-4 h-4 mr-2" /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setDeleteBioConfirm(true)} className="cursor-pointer text-[#EF4444] focus:bg-[#EF4444]/10 focus:text-[#EF4444]">
+                        <Trash2 className="w-4 h-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 )}
               </div>
               
@@ -771,14 +787,21 @@ export default function ProfilePage() {
                             {link.name}
                             <ExternalLink className="w-3 h-3" />
                           </a>
-                          <button onClick={() => { setEditingLinkIndex(index); setEditLinkName(link.name); setEditLinkUrl(link.url); }}
-                            className="p-1 rounded hover:bg-[#2563EB]/10 discuss:hover:bg-[#EF4444]/10 text-[#6275AF] hover:text-[#2563EB] discuss:hover:text-[#EF4444] transition-colors">
-                            <Pencil className="w-3 h-3" />
-                          </button>
-                          <button onClick={() => setDeleteLinkConfirm(index)}
-                            className="p-1 rounded hover:bg-[#EF4444]/10 text-[#6275AF] hover:text-[#EF4444] transition-colors">
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="p-1 rounded hover:bg-[#F5F5F7] dark:hover:bg-[#0F172A] discuss:hover:bg-[#262626] text-[#6275AF] dark:text-[#94A3B8] discuss:text-[#9CA3AF] transition-colors">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-32 bg-white dark:bg-[#1E293B] discuss:bg-[#1a1a1a] border-[#E2E8F0] dark:border-[#334155] discuss:border-[#333333]">
+                              <DropdownMenuItem onClick={() => { setEditingLinkIndex(index); setEditLinkName(link.name); setEditLinkUrl(link.url); }} className="cursor-pointer text-[#0F172A] dark:text-[#F1F5F9] discuss:text-[#F5F5F5] focus:bg-[#F5F5F7] dark:focus:bg-[#0F172A] discuss:focus:bg-[#262626]">
+                                <Pencil className="w-4 h-4 mr-2" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setDeleteLinkConfirm(index)} className="cursor-pointer text-[#EF4444] focus:bg-[#EF4444]/10 focus:text-[#EF4444]">
+                                <Trash2 className="w-4 h-4 mr-2" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </>
                       )}
                     </div>
