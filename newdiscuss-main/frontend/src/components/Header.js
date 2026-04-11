@@ -153,7 +153,12 @@ export default function Header() {
                 <Button 
                   variant="ghost" 
                   data-testid="header-login-btn" 
-                  className="text-neutral-600 dark:text-neutral-400 discuss:text-[#9CA3AF] hover:text-neutral-900 dark:hover:text-white discuss:hover:text-[#F5F5F5] hover:bg-neutral-100 dark:hover:bg-neutral-800 discuss:hover:bg-[#1a1a1a] rounded-[6px] px-4 text-[13px] font-medium"
+                  className="text-neutral-600 dark:text-neutral-400 discuss:text-[#9CA3AF] hover:text-neutral-900 dark:hover:text-white discuss:hover:text-[#F5F5F5] hover:bg-neutral-100 dark:hover:bg-neutral-800 discuss:hover:bg-[#1a1a1a] rounded-[6px] px-4 text-[13px] font-medium border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333]"
+                  style={
+                    document.documentElement.classList.contains('discuss-black')
+                      ? { color: '#F0F0F8', borderColor: 'rgba(255,0,127,0.25)', backgroundColor: 'transparent' }
+                      : {}
+                  }
                 >
                   Login
                 </Button>
