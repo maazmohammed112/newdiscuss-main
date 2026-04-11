@@ -216,14 +216,25 @@ export default function CreateGroupModal({ open, onOpenChange, userId, onGroupCr
           </div>
 
           {/* Warning */}
-          <div className="bg-amber-50 dark:bg-amber-950/30 discuss:bg-amber-950/30 border border-amber-200 dark:border-amber-800 discuss:border-amber-800 rounded-[12px] p-3">
+          <div
+            className="bg-amber-50 dark:bg-amber-950/30 discuss:bg-amber-950/30 border border-amber-200 dark:border-amber-800 discuss:border-amber-800 rounded-[12px] p-3"
+            style={document.documentElement.classList.contains('discuss-black')
+              ? { backgroundColor: 'rgba(120,53,15,0.25)', borderColor: 'rgba(217,119,6,0.3)' }
+              : {}}
+          >
             <div className="flex gap-2">
               <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500 discuss:text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 discuss:text-amber-200 mb-1">
+                <p
+                  className="text-sm font-semibold text-amber-900 dark:text-amber-200 discuss:text-amber-200 mb-1"
+                  style={document.documentElement.classList.contains('discuss-black') ? { color: '#FCD34D' } : {}}
+                >
                   Important Notice
                 </p>
-                <p className="text-xs text-amber-800 dark:text-amber-300 discuss:text-amber-300">
+                <p
+                  className="text-xs text-amber-800 dark:text-amber-300 discuss:text-amber-300"
+                  style={document.documentElement.classList.contains('discuss-black') ? { color: '#FDE68A' } : {}}
+                >
                   Group type cannot be modified after creation. To change the type, you'll need to delete the group and create a new one.
                 </p>
               </div>

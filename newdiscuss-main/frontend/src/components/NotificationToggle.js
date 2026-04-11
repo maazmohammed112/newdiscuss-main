@@ -13,6 +13,7 @@ import {
   unsubscribePush,
   isNotificationsEnabled
 } from '@/lib/pushNotificationService';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -26,6 +27,8 @@ export default function NotificationToggle({ compact = false }) {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const [showIOSHelp, setShowIOSHelp] = useState(false);
+  const { theme } = useTheme();
+  const isBlack = theme === 'discuss-black';
   
   useEffect(() => {
     const checkStatus = async () => {
@@ -124,23 +127,39 @@ export default function NotificationToggle({ compact = false }) {
       </Button>
     );
   }
-  
+
+  // ── discuss-black inline styles ──
+  const containerStyle = isBlack
+    ? { backgroundColor: '#1A1A24', borderRadius: '8px', border: '1px solid rgba(255,0,127,0.15)' }
+    : {};
+  const titleStyle = isBlack ? { color: '#F0F0F8' } : {};
+  const subStyle = isBlack ? { color: '#9090A8' } : {};
+  const iconStyle = isBlack
+    ? { color: enabled ? '#FF007F' : '#9090A8' }
+    : {};
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-muted/50">
+      <div
+        className="flex items-center justify-between gap-4 p-3 rounded-lg bg-muted/50"
+        style={containerStyle}
+      >
         <div className="flex items-center gap-3">
           {enabled ? (
-            <Bell className="h-5 w-5 text-primary" />
+            <Bell className="h-5 w-5 text-primary" style={iconStyle} />
           ) : (
-            <BellOff className="h-5 w-5 text-muted-foreground" />
+            <BellOff className="h-5 w-5 text-muted-foreground" style={iconStyle} />
           )}
           <div>
             <div className="flex items-center gap-2">
-              <p className="font-medium text-sm">Push Notifications</p>
+              <p className="font-medium text-sm" style={titleStyle}>Push Notifications</p>
               {/* Info Icon */}
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="text-muted-foreground hover:text-primary transition-colors">
+                  <button
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    style={isBlack ? { color: '#9090A8' } : {}}
+                  >
                     <Info className="h-4 w-4" />
                   </button>
                 </PopoverTrigger>
@@ -156,19 +175,33 @@ export default function NotificationToggle({ compact = false }) {
                 </PopoverContent>
               </Popover>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {enabled ? 'You\'ll receive alerts for messages & updates' : 'Enable to get notified'}
+            <p className="text-xs text-muted-foreground" style={subStyle}>
+              {enabled ? "You'll receive alerts for messages & updates" : 'Enable to get notified'}
             </p>
           </div>
         </div>
         
         <div className="flex items-center gap-2">
-          {toggling && <Loader2 className="h-4 w-4 animate-spin" />}
-          <Switch
-            checked={enabled}
-            onCheckedChange={handleToggle}
-            disabled={toggling}
-          />
+          {toggling && <Loader2 className="h-4 w-4 animate-spin" style={isBlack ? { color: '#FF007F' } : {}} />}
+          {/* Switch with forced discuss-black styling via CSS custom properties */}
+          <div
+            style={isBlack ? {
+              '--switch-bg-off': '#2A2A38',
+              '--switch-bg-on': '#FF007F',
+            } : {}}
+          >
+            <Switch
+              checked={enabled}
+              onCheckedChange={handleToggle}
+              disabled={toggling}
+              style={isBlack
+                ? {
+                    backgroundColor: enabled ? '#FF007F' : '#2A2A38',
+                    borderColor: enabled ? '#FF007F' : 'rgba(255,0,127,0.3)',
+                  }
+                : {}}
+            />
+          </div>
         </div>
       </div>
       
@@ -178,7 +211,7 @@ export default function NotificationToggle({ compact = false }) {
           <Smartphone className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm">
             <p className="font-medium text-amber-600 dark:text-amber-400">Install the app first</p>
-            <p className="text-muted-foreground text-xs mt-1">
+            <p className="text-muted-foreground text-xs mt-1" style={isBlack ? { color: '#9090A8' } : {}}>
               Tap the share button <span className="inline-block px-1">⬆️</span> then "Add to Home Screen" to enable notifications on iOS.
             </p>
           </div>
@@ -191,7 +224,7 @@ export default function NotificationToggle({ compact = false }) {
           <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm">
             <p className="font-medium text-red-600 dark:text-red-400">Permission blocked</p>
-            <p className="text-muted-foreground text-xs mt-1">
+            <p className="text-muted-foreground text-xs mt-1" style={isBlack ? { color: '#9090A8' } : {}}>
               Notifications are blocked. Please enable them in your browser/device settings.
             </p>
           </div>
