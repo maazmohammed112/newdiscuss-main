@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Loader2, Users, Shield, UserMinus, Crown, LogOut, Trash2, Settings, Clock, UserPlus, Search } from 'lucide-react';
+import { ArrowLeft, Loader2, Users, Shield, UserMinus, Crown, LogOut, Trash2, Settings, Clock, UserPlus, Search, Share2, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Function to delete all group messages (admin only)
@@ -64,6 +64,7 @@ export default function GroupInfoPage() {
   const [addMembersOpen, setAddMembersOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [availableUsers, setAvailableUsers] = useState([]);
+  const [groupShareCopied, setGroupShareCopied] = useState(false);
 
   useEffect(() => {
     if (!user?.id || !groupId) return;
@@ -233,6 +234,36 @@ export default function GroupInfoPage() {
     }
   };
 
+  const handleGroupShare = async () => {
+    const shareMessage = `Join this group on Discuss: ${groupInfo?.name}. Shared by ${user?.username || 'a friend'}.`;
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: groupInfo?.name, text: shareMessage });
+      } catch (_) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareMessage);
+        setGroupShareCopied(true);
+        toast.success('Group invite link copied!');
+        setTimeout(() => setGroupShareCopied(false), 2500);
+      } catch {
+        toast.error('Failed to copy');
+      }
+    }
+  };
+
+  const handleGroupCopy = async () => {
+    const shareMessage = `Join this group on Discuss: ${groupInfo?.name}. Shared by ${user?.username || 'a friend'}.`;
+    try {
+      await navigator.clipboard.writeText(shareMessage);
+      setGroupShareCopied(true);
+      toast.success('Invite message copied!');
+      setTimeout(() => setGroupShareCopied(false), 2500);
+    } catch {
+      toast.error('Failed to copy');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 discuss:bg-[#121212]">
@@ -265,12 +296,13 @@ export default function GroupInfoPage() {
           <h1 className="font-heading text-xl font-bold text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5]">Group Info</h1>
         </div>
 
+        {/* Group Info Card */}
         <div className="bg-white dark:bg-neutral-800 discuss:bg-[#1a1a1a] rounded-[12px] border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] p-6 mb-4">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
               <span className="text-white font-bold text-xl">{groupInfo?.name?.slice(0, 2).toUpperCase()}</span>
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h2 className="text-xl font-bold text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5]">{groupInfo?.name}</h2>
               <div className="flex items-center gap-2 mt-1">
                 <span className={`text-xs px-2 py-0.5 rounded-full ${groupInfo?.type === 'public' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'}`}>
@@ -280,9 +312,33 @@ export default function GroupInfoPage() {
               </div>
             </div>
           </div>
-          <p className="text-neutral-500 dark:text-neutral-400 text-sm">
+          <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-0">
             <Users className="w-4 h-4 inline mr-1" />{members.length} {members.length === 1 ? 'member' : 'members'}
           </p>
+
+          {/* Share button — public groups only */}
+          {groupInfo?.type === 'public' && !isDeleted && (
+            <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-700 discuss:border-[#2a2a2a] flex items-center gap-2">
+              <button
+                onClick={handleGroupShare}
+                data-testid="group-share-btn"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-[8px] bg-[#2563EB]/8 dark:bg-[#2563EB]/10 discuss:bg-[#EF4444]/10 border border-[#2563EB]/20 dark:border-[#2563EB]/30 discuss:border-[#EF4444]/20 text-[#2563EB] dark:text-[#60A5FA] discuss:text-[#EF4444] text-sm font-medium hover:bg-[#2563EB]/15 dark:hover:bg-[#2563EB]/20 discuss:hover:bg-[#EF4444]/15 transition-all"
+              >
+                <Share2 className="w-4 h-4" />
+                Share Group
+              </button>
+              <button
+                onClick={handleGroupCopy}
+                data-testid="group-copy-btn"
+                title="Copy invite message"
+                className="flex items-center justify-center p-2.5 rounded-[8px] border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] hover:bg-neutral-50 dark:hover:bg-neutral-700 discuss:hover:bg-[#262626] transition-all"
+              >
+                {groupShareCopied
+                  ? <Check className="w-4 h-4 text-[#10B981]" />
+                  : <Copy className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />}
+              </button>
+            </div>
+          )}
         </div>
 
         {isAdmin && !isDeleted && (
