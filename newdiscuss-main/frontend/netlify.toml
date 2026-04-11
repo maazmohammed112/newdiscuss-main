@@ -1,5 +1,5 @@
 [build]
-  base = "frontend"
+  base = "newdiscuss-main/frontend"
   command = "yarn build"
   publish = "build"
 
