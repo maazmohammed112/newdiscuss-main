@@ -67,8 +67,11 @@
                   https://securetoken.googleapis.com
                   https://firebase.googleapis.com
                   https://firebasestorage.googleapis.com
-                  https://www.google-analytics.com;
-      frame-src   'self' https://*.firebaseapp.com;
+                  https://www.google-analytics.com
+                  https://*.firebaseapp.com
+                  https://apis.google.com
+                  https://accounts.google.com;
+      frame-src   'self' https://*.firebaseapp.com https://accounts.google.com;
       frame-ancestors 'none';
       object-src  'none';
       base-uri    'self';
@@ -94,8 +97,8 @@
 
     # ── Cross-Origin-Opener-Policy ────────────────────────────
     # Isolates the browsing context; mitigates Spectre-style attacks.
-    # Use "unsafe-none" only if you need cross-origin popups (e.g. Google OAuth popup).
-    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+    # Required to be unsafe-none or absent for Firebase Google Auth popups to work.
+    # Cross-Origin-Opener-Policy = "same-origin-allow-popups"
 
     # ── Cross-Origin-Embedder-Policy ─────────────────────────
     # Required for SharedArrayBuffer; pair with COOP above.
@@ -104,7 +107,7 @@
 
     # ── Cross-Origin-Resource-Policy ─────────────────────────
     # Prevents other origins from loading your assets via <img>/<script>.
-    Cross-Origin-Resource-Policy = "same-site"
+    # Cross-Origin-Resource-Policy = "same-site"
 
     # ── X-XSS-Protection ─────────────────────────────────────
     # Legacy IE/Edge XSS filter. Modern browsers ignore it,
