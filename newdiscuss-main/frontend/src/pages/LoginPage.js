@@ -7,7 +7,7 @@ import TermsModal from '@/components/TermsModal';
 import LoadingScreen from '@/components/LoadingScreen';
 import AdminMessageBanner from '@/components/AdminMessageBanner';
 import DiscussLogo from '@/components/DiscussLogo';
-import { Eye, EyeOff, Loader2, XCircle, Shield, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, XCircle, Shield, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 function GoogleIcon() {
   return (
@@ -25,6 +25,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [captchaTarget, setCaptchaTarget] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -38,6 +40,20 @@ export default function LoginPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  const generateCaptcha = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaTarget(result);
+    setCaptchaInput('');
+  };
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
+
   if (pageLoading) {
     return <LoadingScreen message="Loading login..." />;
   }
@@ -47,6 +63,10 @@ export default function LoginPage() {
     setError('');
     if (!email.trim()) return setError('Email is required');
     if (!password) return setError('Password is required');
+    if (captchaInput !== captchaTarget) {
+      generateCaptcha();
+      return setError('Incorrect CAPTCHA entered');
+    }
     setLoading(true);
     const r = await login(email, password);
     setLoading(false);
@@ -55,6 +75,10 @@ export default function LoginPage() {
   };
 
   const handleGoogle = async () => {
+    if (captchaInput !== captchaTarget) {
+      setError('Please enter the correctly verified CAPTCHA also.');
+      return;
+    }
     setError('');
     setGoogleLoading(true);
     const r = await loginWithGoogle();
@@ -127,6 +151,43 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+
+              {/* CAPTCHA */}
+              <div>
+                <label className="text-neutral-500 dark:text-neutral-400 discuss:text-[#9CA3AF] text-[11px] font-bold uppercase tracking-[0.1em]">Security CAPTCHA</label>
+                <div className="flex items-center gap-3 mt-1.5 mb-2">
+                  <div className="relative flex-1 max-w-[140px] bg-white dark:bg-[#1E293B] discuss:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] rounded-[6px] h-11 flex items-center justify-center overflow-hidden select-none">
+                    <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjxwb2x5Z29uIGZpbGw9IiMwMDAiIGZpbGwtb3BhY2l0eT0iMC4xIiBwb2ludHM9IjQgMCAwIDQgMCAwIDQgNCIvPjwvc3ZnPg==')] pointer-events-none"></div>
+                    <span className="font-mono text-lg font-extrabold tracking-[0.3em] text-neutral-900 dark:text-white discuss:text-[#F5F5F5]">{captchaTarget}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={generateCaptcha}
+                    title="Refresh CAPTCHA"
+                    className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white discuss:hover:text-[#F5F5F5] transition-colors rounded-[6px] hover:bg-neutral-100 dark:hover:bg-neutral-800 discuss:hover:bg-[#333333]"
+                  >
+                    <RefreshCw className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="relative">
+                  <Input data-testid="login-captcha-input" type="text" value={captchaInput} onChange={(e) => { setCaptchaInput(e.target.value); setError(''); }}
+                    placeholder="Enter above characters"
+                    className="bg-neutral-50 dark:bg-neutral-900 discuss:bg-[#262626] border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5] placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus:bg-white dark:focus:bg-neutral-800 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 rounded-[6px] h-11 pr-10" />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none flex items-center">
+                    {captchaInput.length > 0 && captchaInput === captchaTarget ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    ) : captchaInput.length > 0 ? (
+                      <XCircle className="w-5 h-5 text-red-500" />
+                    ) : null}
+                  </div>
+                </div>
+                {captchaInput.length > 0 && captchaInput !== captchaTarget && (
+                   <span className="text-red-500 text-[11px] mt-1 flex items-center gap-1">
+                     <XCircle className="w-3 h-3" />CAPTCHA does not match
+                   </span>
+                )}
+              </div>
+
               <Button type="submit" data-testid="login-submit-btn" disabled={loading}
                 className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] discuss:bg-[#EF4444] discuss:hover:bg-[#DC2626] text-white font-semibold rounded-[6px] py-3 h-12 text-[15px] shadow-button hover:shadow-button-hover transition-all">
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Login'}

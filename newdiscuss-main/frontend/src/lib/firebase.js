@@ -17,7 +17,7 @@ import {
 
 const firebaseConfig = {
   apiKey: "AIzaSyAHjarX3OLHRw7kqvFh_8GsTnqsyl9vg9c",
-  authDomain: "discussit.in",
+  authDomain: "discuss-13fbc.firebaseapp.com",
   databaseURL: "https://discuss-13fbc-default-rtdb.firebaseio.com",
   projectId: "discuss-13fbc",
   storageBucket: "discuss-13fbc.firebasestorage.app",
