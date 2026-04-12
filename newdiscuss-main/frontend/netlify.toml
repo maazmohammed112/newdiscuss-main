@@ -63,13 +63,14 @@
                   https://api.discussit.in
                   wss://api.discussit.in
                   https://*.firebaseio.com
+                  wss://*.firebaseio.com
                   https://*.googleapis.com
                   https://identitytoolkit.googleapis.com
                   https://securetoken.googleapis.com
                   https://firebase.googleapis.com
                   https://firebasestorage.googleapis.com
                   https://www.google-analytics.com;
-      frame-src   'none';
+      frame-src   'self' https://*.firebaseapp.com;
       frame-ancestors 'none';
       object-src  'none';
       base-uri    'self';
