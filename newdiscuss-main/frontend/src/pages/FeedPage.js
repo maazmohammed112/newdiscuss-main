@@ -13,6 +13,7 @@ import PostCard from '@/components/PostCard';
 import CreatePostModal from '@/components/CreatePostModal';
 import LoadingScreen from '@/components/LoadingScreen';
 import UserSearchResult from '@/components/UserSearchResult';
+import SignalStoriesRow from '@/components/SignalStoriesRow';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, MessageSquare, FolderGit2, WifiOff, Loader2, Search, X, Hash, TrendingUp, Users } from 'lucide-react';
@@ -230,6 +231,9 @@ export default function FeedPage() {
             <Plus className="w-4 h-4 mr-1.5" /> New Post
           </Button>
         </div>
+
+        {/* Signal Stories Row */}
+        <SignalStoriesRow />
 
         {/* Tabs */}
         <div data-testid="feed-tabs" className="flex mb-4 bg-white dark:bg-neutral-800 discuss:bg-[#1a1a1a] rounded-[12px] p-1 border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] shadow-card">

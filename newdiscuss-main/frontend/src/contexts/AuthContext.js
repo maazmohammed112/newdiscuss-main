@@ -131,29 +131,65 @@ export function AuthProvider({ children }) {
   }, [syncUser]);
 
   useEffect(() => {
-    getRedirectResult(auth).then(async (result) => {
-      if (result?.user) {
-        await syncUser(result.user);
+    let authListenerRegistered = false;
+    let loadingTimeout = null;
+
+    // Safety net: if onAuthStateChanged never fires within 6s, unblock the UI
+    loadingTimeout = setTimeout(() => {
+      if (!authListenerRegistered) {
+        console.warn('Auth state timeout — forcing loading=false');
+        setLoading(false);
       }
-    }).catch(console.error);
+    }, 6000);
+
+    // Handle redirect result in a fully isolated block so it NEVER
+    // prevents the onAuthStateChanged listener from being wired up.
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          // Clear stale pending verification for OAuth providers
+          window.localStorage.removeItem('pendingVerification');
+          setPendingVerification(false);
+          await syncUser(result.user);
+        }
+      })
+      .catch((err) => {
+        console.warn('getRedirectResult error (non-critical):', err?.code || err?.message);
+      });
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // If there's a pending verification, don't auto-login
-      const isPending = window.localStorage.getItem('pendingVerification');
-      if (isPending && firebaseUser && firebaseUser.providerData[0]?.providerId === 'password') {
-        // Sign out unverified manual accounts
-        await firebaseSignOut(auth);
+      authListenerRegistered = true;
+      clearTimeout(loadingTimeout);
+
+      try {
+        // If there's a pending verification, don't auto-login password users
+        const isPending = window.localStorage.getItem('pendingVerification');
+        if (isPending && firebaseUser && firebaseUser.providerData[0]?.providerId === 'password') {
+          await firebaseSignOut(auth);
+          setUser(null);
+          setPendingVerification(true);
+          return;
+        }
+
+        // Clear stale pendingVerification when a non-password provider signs in
+        if (firebaseUser && firebaseUser.providerData[0]?.providerId !== 'password') {
+          window.localStorage.removeItem('pendingVerification');
+          setPendingVerification(false);
+        }
+
+        await syncUser(firebaseUser);
+      } catch (err) {
+        console.error('onAuthStateChanged handler error:', err);
         setUser(null);
-        setPendingVerification(true);
+      } finally {
         setLoading(false);
-        return;
       }
-      
-      await syncUser(firebaseUser);
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      clearTimeout(loadingTimeout);
+      unsubscribe();
+    };
   }, [syncUser]);
 
   // Real-time listener for profile, verification, and account removal from primary RTDB
