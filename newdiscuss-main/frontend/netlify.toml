@@ -114,6 +114,13 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
+# ── Cache header for sw-push.js (always fresh, never stale) ──
+[[headers]]
+  for = "/sw-push.js"
+
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
 # ── Cache header for manifest ─────────────────────────────────
 [[headers]]
   for = "/manifest.json"

@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { purgeUserSessionCaches } from '@/lib/cacheManager';
+import { registerSession, cleanupSession } from '@/lib/sessionManager';
 import { 
   auth, 
   googleProvider, 
@@ -26,6 +27,29 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [pendingVerification, setPendingVerification] = useState(false);
+  const sessionCleanupRef = useRef(null); // stores the session unsubscribe fn
+
+  // Internal helper — registers a DB session and wires up the kick listener
+  const _registerSessionForUser = useCallback((userData) => {
+    if (!userData?.id) return;
+    // Clean up previous session listener
+    if (sessionCleanupRef.current) {
+      sessionCleanupRef.current();
+      sessionCleanupRef.current = null;
+    }
+    registerSession(userData.id, async () => {
+      console.warn('[Auth] This session was kicked (session limit reached).');
+      try {
+        await purgeUserSessionCaches(userData.id);
+        await firebaseSignOut(auth);
+        setUser(null);
+      } catch (e) {
+        console.error('[Auth] Kick sign-out error:', e);
+      }
+    }).then((cleanup) => {
+      sessionCleanupRef.current = cleanup;
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const syncUser = useCallback(async (firebaseUser) => {
     if (!firebaseUser) {
@@ -73,6 +97,7 @@ export function AuthProvider({ children }) {
       };
       
       setUser(userData);
+      _registerSessionForUser(userData);
       return userData;
     } catch (error) {
       console.error('Error syncing user:', error);
@@ -86,9 +111,10 @@ export function AuthProvider({ children }) {
         admin_message: '' // Default to empty on error
       };
       setUser(basicUser);
+      _registerSessionForUser(basicUser);
       return basicUser;
     }
-  }, []);
+  }, [_registerSessionForUser]);
 
   // Handle email link sign-in on page load
   useEffect(() => {
