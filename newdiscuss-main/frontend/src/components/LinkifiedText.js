@@ -5,8 +5,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ExternalLink, AlertTriangle } from 'lucide-react';
 
-// URL regex pattern
-const URL_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
+// URL regex pattern - catches http/https, www, and bare domains with paths/extensions (like lnkd.in/...)
+const URL_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
 
 /**
  * Truncate a URL to show abbreviated version
@@ -64,8 +64,8 @@ export const parseTextWithLinks = (text) => {
     
     // Add the URL
     let url = match[0];
-    // Add https:// if it starts with www.
-    const href = url.startsWith('www.') ? `https://${url}` : url;
+    // Add https:// if it doesn't have an http prefix
+    const href = url.startsWith('http') ? url : `https://${url}`;
     // Store both full URL and truncated display version
     parts.push({ 
       type: 'link', 
@@ -120,7 +120,7 @@ export default function LinkifiedText({ text, className = '' }) {
                 key={index}
                 href={part.href}
                 onClick={(e) => handleLinkClick(e, part.href, part.content)}
-                className="text-[#2563EB] discuss:text-[#60A5FA] hover:underline inline-flex items-center gap-0.5"
+                className="text-[#2563EB] dark:text-[#60A5FA] discuss:text-[#EF4444] discuss-black:text-[#FF007F] hover:underline inline-flex items-center gap-0.5 transition-colors"
                 title={part.content} // Show full URL on hover
               >
                 {part.displayContent}
