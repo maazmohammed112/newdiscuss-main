@@ -236,8 +236,7 @@ export default function ChatPage() {
         {/* Avatar with unread indicator */}
         <div className="relative shrink-0">
           {otherUser.photo_url ? (
-            <img
-              src={otherUser.photo_url}
+            <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={otherUser.photo_url}
               alt={otherUser.username}
               className="w-12 h-12 rounded-full object-cover"
             />
@@ -291,8 +290,7 @@ export default function ChatPage() {
         className="w-full flex items-center gap-3 p-3 bg-white dark:bg-neutral-800 discuss:bg-[#1a1a1a] rounded-[12px] hover:shadow-card-hover dark:hover:shadow-none transition-all border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] shadow-card"
       >
         {friend.photo_url ? (
-          <img
-            src={friend.photo_url}
+          <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={friend.photo_url}
             alt={friend.username}
             className="w-12 h-12 rounded-full object-cover shrink-0"
           />

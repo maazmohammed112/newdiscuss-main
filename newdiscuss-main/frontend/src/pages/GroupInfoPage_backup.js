@@ -308,7 +308,7 @@ export default function GroupInfoPage() {
                     <div key={member.userId} className="flex items-center justify-between p-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 discuss:hover:bg-[#262626]">
                       <div className="flex items-center gap-3">
                         {details?.photo_url ? (
-                          <img src={details.photo_url} alt="" className="w-10 h-10 rounded-full" />
+                          <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={details.photo_url} alt="" className="w-10 h-10 rounded-full" />
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
                             <span className="text-white font-bold text-sm">{details?.username?.slice(0, 2).toUpperCase()}</span>
@@ -355,7 +355,7 @@ export default function GroupInfoPage() {
                     <div key={member.userId} className="flex items-center justify-between p-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 discuss:hover:bg-[#262626]">
                       <div className="flex items-center gap-3">
                         {details?.photo_url ? (
-                          <img src={details.photo_url} alt="" className="w-10 h-10 rounded-full" />
+                          <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={details.photo_url} alt="" className="w-10 h-10 rounded-full" />
                         ) : (
                           <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
                             <span className="text-white font-bold text-sm">{details?.username?.slice(0, 2).toUpperCase()}</span>

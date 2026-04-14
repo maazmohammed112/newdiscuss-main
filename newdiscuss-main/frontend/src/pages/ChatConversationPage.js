@@ -632,8 +632,7 @@ export default function ChatConversationPage() {
               className="flex items-center gap-3"
             >
               {otherUser.photo_url ? (
-                <img
-                  src={otherUser.photo_url}
+                <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={otherUser.photo_url}
                   alt={otherUser.username}
                   className="w-10 h-10 rounded-full object-cover"
                 />
@@ -813,8 +812,7 @@ export default function ChatConversationPage() {
 
                     {!isOwn && showAvatar && (
                       otherUser.photo_url ? (
-                        <img
-                          src={otherUser.photo_url}
+                        <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={otherUser.photo_url}
                           alt={otherUser.username}
                           className="w-6 h-6 rounded-full object-cover shrink-0"
                         />

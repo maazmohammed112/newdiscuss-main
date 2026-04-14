@@ -7,6 +7,7 @@ import {
 } from '@/lib/storiesDb';
 import SignalStoryCreator from '@/components/SignalStoryCreator';
 import SignalStoryViewer from '@/components/SignalStoryViewer';
+import UserAvatar from '@/components/UserAvatar';
 import { Plus, Zap } from 'lucide-react';
 
 // ─── Avatar circle for each user in the row ──────────────────
@@ -28,7 +29,11 @@ function StoryAvatar({ group, hasUnseen, isSelf, onClick }) {
         >
           <div className="w-full h-full rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#2a2a2a]">
             {group.authorPhotoUrl ? (
-              <img src={group.authorPhotoUrl} alt={group.authorUsername} className="w-full h-full object-cover" />
+              <UserAvatar 
+                src={group.authorPhotoUrl} 
+                username={group.authorUsername} 
+                className="w-full h-full rounded-none" 
+              />
             ) : (
               <div
                 className="w-full h-full flex items-center justify-center text-white text-[18px] font-bold"
@@ -91,6 +96,7 @@ export default function SignalStoriesRow() {
   const [stories, setStories] = useState([]);
   const [seenIds, setSeenIds] = useState(new Set());
   const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [showCreator, setShowCreator] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -107,7 +113,10 @@ export default function SignalStoriesRow() {
 
   // ── Subscribe to active stories ─────────────────────────────
   useEffect(() => {
-    const unsub = subscribeToActiveStories(setStories);
+    const unsub = subscribeToActiveStories((fetchedStories) => {
+      setStories(fetchedStories);
+      setLoading(false);
+    });
     return () => unsub();
   }, []);
 
@@ -153,19 +162,30 @@ export default function SignalStoriesRow() {
             onClick={() => setShowCreator(true)}
           />
 
-          {/* Story avatars */}
-          {groups.map((group, idx) => {
-            const hasUnseen = group.stories.some((s) => !seenIds.has(s.id));
-            return (
-              <StoryAvatar
-                key={group.authorId}
-                group={group}
-                hasUnseen={hasUnseen}
-                isSelf={group.authorId === user?.id}
-                onClick={() => openViewer(idx)}
-              />
-            );
-          })}
+          {/* Story avatars or skeletons */}
+          {loading ? (
+            <>
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="flex flex-col items-center gap-1.5 flex-shrink-0" style={{ width: '66px' }}>
+                  <div className="w-[58px] h-[58px] rounded-full bg-neutral-200 dark:bg-neutral-800 discuss:bg-[#2a2a2a] animate-pulse" />
+                  <div className="w-12 h-3 rounded bg-neutral-200 dark:bg-neutral-800 discuss:bg-[#2a2a2a] animate-pulse" />
+                </div>
+              ))}
+            </>
+          ) : (
+            groups.map((group, idx) => {
+              const hasUnseen = group.stories.some((s) => !seenIds.has(s.id));
+              return (
+                <StoryAvatar
+                  key={group.authorId}
+                  group={group}
+                  hasUnseen={hasUnseen}
+                  isSelf={group.authorId === user?.id}
+                  onClick={() => openViewer(idx)}
+                />
+              );
+            })
+          )}
         </div>
       </div>
 

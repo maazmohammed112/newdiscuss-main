@@ -6,6 +6,7 @@ import { subscribeToReceivedRequests } from '@/lib/relationshipsDb';
 import { subscribeToAdminMessage, markAdminMessageSeen } from '@/lib/adminMessageDb';
 import { subscribeToCommentBadges } from '@/lib/commentsDb';
 import DiscussLogo from '@/components/DiscussLogo';
+import UserAvatar from '@/components/UserAvatar';
 import { Button } from '@/components/ui/button';
 import {
   Popover, PopoverContent, PopoverTrigger,
@@ -135,7 +136,12 @@ export default function Header() {
                   className="w-9 h-9 p-0 rounded-[6px] bg-neutral-100 dark:bg-neutral-800 discuss:bg-[#1a1a1a] hover:bg-neutral-200 dark:hover:bg-neutral-700 discuss:hover:bg-[#262626] border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] overflow-hidden"
                 >
                   {user.photo_url ? (
-                    <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
+                    <UserAvatar
+                      src={user.photo_url}
+                      username={user.username}
+                      className="w-full h-full rounded-none"
+                      alt={user.username}
+                    />
                   ) : (
                     <User className="w-4 h-4 text-neutral-600 dark:text-neutral-400 discuss:text-[#9CA3AF]" />
                   )}

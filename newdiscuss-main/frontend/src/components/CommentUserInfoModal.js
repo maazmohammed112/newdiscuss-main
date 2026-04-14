@@ -83,7 +83,7 @@ export default function CommentUserInfoModal({ open, onClose, userId, currentUse
                     onClick={() => setShowImagePreview(true)}
                     className="relative group mx-auto mb-3 block"
                   >
-                    <img src={userData.photo_url} alt={userData.username} className="w-16 h-16 rounded-full mx-auto shadow-lg discuss:shadow-none discuss:border discuss:border-[#333333] object-cover group-hover:opacity-90 transition-opacity" />
+                    <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={userData.photo_url} alt={userData.username} className="w-16 h-16 rounded-full mx-auto shadow-lg discuss:shadow-none discuss:border discuss:border-[#333333] object-cover group-hover:opacity-90 transition-opacity" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                       <div className="bg-black/50 rounded-full p-1.5">
                         <User className="w-3.5 h-3.5 text-white" />
