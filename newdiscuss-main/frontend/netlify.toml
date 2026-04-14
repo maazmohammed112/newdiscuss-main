@@ -15,6 +15,7 @@
   NPM_FLAGS            = "--legacy-peer-deps"
   NODE_VERSION         = "20.11.0"
   INLINE_RUNTIME_CHUNK = "false"
+  GENERATE_SOURCEMAP   = "false"
 
 # ── SPA catch-all redirect ────────────────────────────────────
 # React Router: every path must serve index.html (status 200 = rewrite)

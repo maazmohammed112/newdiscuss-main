@@ -1,8 +1,6 @@
-import UserAvatar from '@/components/UserAvatar';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useHighlights } from '@/contexts/HighlightsContext';
 import { getUser } from '@/lib/db';
 import { database, ref, onValue } from '@/lib/firebase';
 import { getChatsWithUserDetails, subscribeToUserChats, getUserChats, getChatSettings } from '@/lib/chatsDb';
@@ -55,7 +53,6 @@ import {
 export default function ChatPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { pendingGroupRequests } = useHighlights();
   const [chats, setChats] = useState([]);
   const [friends, setFriends] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -423,11 +420,17 @@ export default function ChatPage() {
         } border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] ${hasUnread ? 'ring-1 ring-[#2563EB]/20 discuss:ring-[#EF4444]/20' : ''} shadow-card`}
       >
         <div className="relative shrink-0">
-          <UserAvatar
-            src={otherUser.photo_url}
-            username={otherUser.username}
-            className="w-12 h-12"
-          />
+          {otherUser.photo_url ? (
+            <img
+              src={otherUser.photo_url}
+              alt={otherUser.username}
+              className="w-12 h-12 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
+              <span className="text-white font-bold">{initials}</span>
+            </div>
+          )}
           {hasUnread && (
             <span className="absolute -top-1 -right-1 bg-[#EF4444] text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 shadow-sm">
               {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
@@ -504,12 +507,7 @@ export default function ChatPage() {
               <span className={`font-semibold text-sm truncate ${hasUnread ? 'text-neutral-900 dark:text-white discuss:text-white' : 'text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5]'}`}>
                 {group.groupName}
               </span>
-              <span
-                className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-purple-100 dark:bg-purple-900/30 discuss:bg-purple-900/30 text-purple-700 dark:text-purple-300 discuss:text-purple-300"
-                style={document.documentElement.classList.contains('discuss-black')
-                  ? { backgroundColor: 'rgba(112,0,255,0.18)', color: '#C084FC' }
-                  : {}}
-              >
+              <span className="bg-purple-100 dark:bg-purple-900/30 discuss:bg-purple-900/30 text-purple-700 dark:text-purple-300 discuss:text-purple-300 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
                 Group Chat
               </span>
             </div>
@@ -536,11 +534,17 @@ export default function ChatPage() {
         onClick={() => handleStartNewChat(friend.id)}
         className="w-full flex items-center gap-3 p-3 bg-white dark:bg-neutral-800 discuss:bg-[#1a1a1a] rounded-[12px] hover:shadow-card-hover dark:hover:shadow-none transition-all border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] shadow-card"
       >
-        <UserAvatar
-          src={friend.photo_url}
-          username={friend.username}
-          className="w-12 h-12 shrink-0"
-        />
+        {friend.photo_url ? (
+          <img
+            src={friend.photo_url}
+            alt={friend.username}
+            className="w-12 h-12 rounded-full object-cover shrink-0"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center shrink-0">
+            <span className="text-white font-bold">{initials}</span>
+          </div>
+        )}
         
         <div className="flex-1 min-w-0 text-left">
           <div className="flex items-center gap-1">
@@ -596,11 +600,8 @@ export default function ChatPage() {
           {/* Three-dot menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="relative p-2 rounded-[6px] hover:bg-white dark:hover:bg-neutral-800 discuss:hover:bg-[#1a1a1a] text-neutral-500 dark:text-neutral-400 discuss:text-[#9CA3AF] transition-colors border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333]">
+              <button className="p-2 rounded-[6px] hover:bg-white dark:hover:bg-neutral-800 discuss:hover:bg-[#1a1a1a] text-neutral-500 dark:text-neutral-400 discuss:text-[#9CA3AF] transition-colors border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333]">
                 <MoreVertical className="w-5 h-5" />
-                {pendingGroupRequests > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-neutral-50 dark:border-neutral-900 discuss:border-[#121212]"></span>
-                )}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -612,12 +613,9 @@ export default function ChatPage() {
                 <Globe className="w-4 h-4 mr-2" />
                 Search Public Groups
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/join-requests')} className="relative">
+              <DropdownMenuItem onClick={() => navigate('/join-requests')}>
                 <Inbox className="w-4 h-4 mr-2" />
                 View / Manage Requests
-                {pendingGroupRequests > 0 && (
-                  <span className="ml-auto w-2 h-2 bg-red-500 rounded-full"></span>
-                )}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

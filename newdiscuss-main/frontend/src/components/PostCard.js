@@ -57,14 +57,12 @@ export default function PostCard({ post, currentUser, onDeleted, onUpdated, onVo
   const upvoteCount = post.upvote_count || 0;
   const downvoteCount = post.downvote_count || 0;
 
-  // Extract first URL from discussion post content for link preview
-  const firstLinkUrl = !isProject
-    ? (() => {
-        const parts = parseTextWithLinks(post.content || '');
-        const linkPart = parts.find(p => p.type === 'link');
-        return linkPart?.href || null;
-      })()
-    : null;
+  // Extract first URL from post content for link preview
+  const firstLinkUrl = (() => {
+    const parts = parseTextWithLinks(post.content || '');
+    const linkPart = parts.find(p => p.type === 'link');
+    return linkPart?.href || null;
+  })();
 
   // Check for new comment badge (only for post author) - real-time
   useEffect(() => {
@@ -198,7 +196,7 @@ export default function PostCard({ post, currentUser, onDeleted, onUpdated, onVo
             </ExpandableText>
           </div>
 
-          {/* Link Preview — discussion posts only, first URL found */}
+          {/* Link Preview — first URL found */}
           {firstLinkUrl && (
             <div onClick={(e) => e.stopPropagation()}>
               <LinkPreview

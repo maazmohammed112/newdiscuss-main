@@ -1,4 +1,3 @@
-import UserAvatar from '@/components/UserAvatar';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { database, ref, onValue } from '@/lib/firebase';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -11,6 +10,8 @@ import {
   sendMessage, 
   subscribeToMessages, 
   markMessagesAsRead,
+  getChatStatus,
+  getChatSettings,
   toggleAutoDelete,
   deleteOldMessages,
   generateChatId,
@@ -21,7 +22,6 @@ import {
   sendReplyMessage,
   reportAndRestrictUser,
   runAutoDeleteCleanup,
-  subscribeToChatSettings,
   CHAT_STATUS
 } from '@/lib/chatsDb';
 import {
@@ -174,6 +174,20 @@ export default function ChatConversationPage() {
         const generatedChatId = generateChatId(user.id, otherUserId);
         setChatId(generatedChatId);
 
+        // Check chat status and settings
+        const [currentChatStatus, chatSettings] = await Promise.all([
+          getChatStatus(generatedChatId),
+          getChatSettings(generatedChatId)
+        ]);
+        
+        if (currentChatStatus) {
+          setChatStatus(currentChatStatus);
+        }
+        
+        if (chatSettings) {
+          setAutoDeleteEnabled(chatSettings.autoDelete || false);
+        }
+
         // Load deleted messages for current user
         const deleted = await getDeletedMessages(user.id, generatedChatId);
         setDeletedMessageIds(deleted);
@@ -200,23 +214,6 @@ export default function ChatConversationPage() {
   useEffect(() => {
     setLiveMessagesSynced(false);
     prevSeenMessageIdsRef.current = new Set();
-  }, [chatId]);
-
-  // Subscribe to chat settings
-  useEffect(() => {
-    if (!chatId) return;
-    
-    const unsubscribe = subscribeToChatSettings(chatId, (settings) => {
-      if (settings) {
-        setAutoDeleteEnabled(settings.autoDelete || false);
-        if (settings.status) setChatStatus(settings.status);
-      } else {
-        // Chat deleted or non-existent
-        setChatStatus(CHAT_STATUS.DELETED);
-      }
-    });
-    
-    return () => unsubscribe();
   }, [chatId]);
 
   // Subscribe to messages with IndexedDB + localStorage cache
@@ -320,7 +317,7 @@ export default function ChatConversationPage() {
     } catch (error) {
       console.error('Send message error:', error);
       setNewMessage(messageText);
-      toast.error(error.message || 'Failed to send message');
+      toast.error('Failed to send message');
     } finally {
       setSending(false);
     }
@@ -565,35 +562,11 @@ export default function ChatConversationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 discuss:bg-[#121212]">
-        <Header />
-        {/* Skeleton Top Bar */}
-        <div className="bg-white dark:bg-neutral-800 discuss:bg-[#1a1a1a] border-b border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] px-4 py-3">
-          <div className="max-w-2xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#333333] animate-pulse rounded" />
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#333333] animate-pulse" />
-                <div>
-                  <div className="w-24 h-4 bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#333333] animate-pulse rounded mb-1.5" />
-                  <div className="w-16 h-3 bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#333333] animate-pulse rounded" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* Skeleton Messages Area */}
-        <div className="flex-1 overflow-y-auto px-4 py-4" style={{ maxHeight: `calc(100vh - 140px)` }}>
-          <div className="max-w-2xl mx-auto space-y-4">
-            <div className="space-y-3 py-2" aria-hidden>
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                  <div className="h-11 w-[58%] max-w-sm rounded-2xl bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#333333] animate-pulse" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 discuss:bg-[#121212] flex flex-col items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#2563EB] discuss:text-[#EF4444] mb-3" />
+        <p className="text-neutral-500 dark:text-neutral-400 discuss:text-[#9CA3AF] text-sm">
+          Loading chat, please wait...
+        </p>
       </div>
     );
   }
@@ -632,11 +605,17 @@ export default function ChatConversationPage() {
               onClick={() => navigate(`/user/${otherUserId}`)}
               className="flex items-center gap-3"
             >
-              <UserAvatar
-                src={otherUser.photo_url}
-                username={otherUser.username}
-                className="w-10 h-10"
-              />
+              {otherUser.photo_url ? (
+                <img
+                  src={otherUser.photo_url}
+                  alt={otherUser.username}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">{initials}</span>
+                </div>
+              )}
               
               <div className="text-left">
                 <div className="flex items-center gap-1">
@@ -807,11 +786,17 @@ export default function ChatConversationPage() {
                     )}
 
                     {!isOwn && showAvatar && (
-                      <UserAvatar
-                        src={otherUser.photo_url}
-                        username={otherUser.username}
-                        className="w-6 h-6 shrink-0"
-                      />
+                      otherUser.photo_url ? (
+                        <img
+                          src={otherUser.photo_url}
+                          alt={otherUser.username}
+                          className="w-6 h-6 rounded-full object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center shrink-0">
+                          <span className="text-white text-[10px] font-bold">{initials}</span>
+                        </div>
+                      )
                     )}
                     {!isOwn && !showAvatar && <div className="w-6" />}
                     
@@ -922,46 +907,27 @@ export default function ChatConversationPage() {
       {/* Message input */}
       {chatEnabled && (
         <div className="bg-white dark:bg-neutral-800 discuss:bg-[#1a1a1a] border-t border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] px-4 py-3 sticky bottom-0">
-          <div className="max-w-2xl mx-auto">
-            {replyTo && (
-              <div className="mb-2 bg-neutral-100 dark:bg-neutral-700 discuss:bg-[#262626] p-2 rounded-[8px] border-l-2 border-[#2563EB] discuss:border-[#EF4444]">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-[#2563EB] discuss:text-[#EF4444]">
-                      Replying to {replyTo.sender === user?.id ? 'yourself' : `@${otherUser?.username || 'User'}`}
-                    </p>
-                    <p className="text-xs text-neutral-600 dark:text-neutral-300 discuss:text-[#9CA3AF] truncate">
-                      {replyPreviewText(replyTo, {})}
-                    </p>
-                  </div>
-                  <button type="button" onClick={() => setReplyTo(null)} className="ml-2 p-1 hover:bg-neutral-200 dark:hover:bg-neutral-600 discuss:hover:bg-[#333333] rounded">
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-            <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-              <Input
-                ref={inputRef}
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder={replyTo ? "Type your reply..." : "Type a message..."}
-                className="flex-1 bg-neutral-100 dark:bg-neutral-900 discuss:bg-[#262626] border-0 text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5] placeholder:text-neutral-400 dark:placeholder:text-neutral-500 discuss:placeholder:text-[#9CA3AF] rounded-full px-4"
-                disabled={sending}
-              />
-              <Button
-                type="submit"
-                disabled={!newMessage.trim() || sending}
-                className="rounded-full w-10 h-10 p-0 bg-[#2563EB] discuss:bg-[#EF4444] hover:bg-[#1D4ED8] discuss:hover:bg-[#DC2626] text-white shadow-button"
-              >
-                {sending ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Send className="w-5 h-5" />
-                )}
-              </Button>
-            </form>
-          </div>
+          <form onSubmit={handleSendMessage} className="max-w-2xl mx-auto flex items-center gap-2">
+            <Input
+              ref={inputRef}
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder={replyTo ? "Type your reply..." : "Type a message..."}
+              className="flex-1 bg-neutral-100 dark:bg-neutral-900 discuss:bg-[#262626] border-0 text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5] placeholder:text-neutral-400 dark:placeholder:text-neutral-500 discuss:placeholder:text-[#9CA3AF] rounded-full px-4"
+              disabled={sending}
+            />
+            <Button
+              type="submit"
+              disabled={!newMessage.trim() || sending}
+              className="rounded-full w-10 h-10 p-0 bg-[#2563EB] discuss:bg-[#EF4444] hover:bg-[#1D4ED8] discuss:hover:bg-[#DC2626] text-white shadow-button"
+            >
+              {sending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </Button>
+          </form>
         </div>
       )}
 

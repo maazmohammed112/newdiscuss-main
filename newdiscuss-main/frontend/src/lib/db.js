@@ -10,7 +10,9 @@ import {
   onValue,
   off,
   query,
-  orderByChild
+  orderByChild,
+  limitToLast,
+  equalTo
 } from './firebase';
 import { 
   secondaryDatabase, 
@@ -330,11 +332,21 @@ export const getPostsByUser = async (userId) => {
   if (cached && cached.length > 0) return cached;
   
   const postsRef = ref(database, 'posts');
+  // Use Firebase index to ONLY download the user's posts
+  const postsQuery = query(postsRef, orderByChild('author_id'), equalTo(userId));
+  
+  const [postsSnap] = await Promise.all([
+    get(postsQuery)
+  ]);
+  
+  const posts = postsSnap.exists() ? postsSnap.val() : {};
+  if (Object.keys(posts).length === 0) return [];
+
+  // Wait to fetch votes and comments since we already bounded the payload significantly
   const votesRef = ref(database, 'votes');
   const commentsRef = ref(database, 'comments');
-  
-  const [postsSnap, votesSnap, commentsSnap] = await Promise.all([
-    get(postsRef), get(votesRef), get(commentsRef)
+  const [votesSnap, commentsSnap] = await Promise.all([
+    get(votesRef), get(commentsRef)
   ]);
   
   // Fetch secondary database with timeout
@@ -353,12 +365,10 @@ export const getPostsByUser = async (userId) => {
     console.warn('Secondary database unavailable:', e.message);
   }
   
-  const posts = postsSnap.exists() ? postsSnap.val() : {};
   const votes = votesSnap.exists() ? votesSnap.val() : {};
   const comments = commentsSnap.exists() ? commentsSnap.val() : {};
   
   const result = Object.entries(posts)
-    .filter(([, p]) => p.author_id === userId)
     .map(([id, post]) => {
       const pv = votes[id] || {};
       const oldComments = comments[id] || {};
@@ -386,12 +396,14 @@ export const getPosts = async (searchQuery = null) => {
   if (cached && cached.length > 0) return cached;
   
   const postsRef = ref(database, 'posts');
+  // Use limitToLast to prevent downloading the entire database on Feed load
+  const postsQuery = query(postsRef, limitToLast(50));
   const votesRef = ref(database, 'votes');
   const commentsRef = ref(database, 'comments');
   
   // Fetch primary databases in parallel
   const [postsSnap, votesSnap, commentsSnap] = await Promise.all([
-    get(postsRef),
+    get(postsQuery),
     get(votesRef),
     get(commentsRef)
   ]);
@@ -739,6 +751,8 @@ const _buildPostsFromSnapshots = (postsVal, votesVal, commentsVal, secondaryComm
 
 export const subscribeToPostsRealtime = (callback) => {
   const postsRef   = ref(database, 'posts');
+  // Bound the real-time listener to prevent memory overload
+  const postsQuery = query(postsRef, limitToLast(50));
   const votesRef   = ref(database, 'votes');
   const commentsRef = ref(database, 'comments');
 
@@ -769,14 +783,14 @@ export const subscribeToPostsRealtime = (callback) => {
   const handleVotes    = (snap) => { snapshotVotes    = snap.exists() ? snap.val() : {}; scheduleUpdate(); };
   const handleComments = (snap) => { snapshotComments = snap.exists() ? snap.val() : {}; scheduleUpdate(); };
 
-  onValue(postsRef,    handlePosts);
+  onValue(postsQuery,  handlePosts);
   onValue(votesRef,    handleVotes);
   onValue(commentsRef, handleComments);
 
   // Return unsubscribe function
   return () => {
     clearTimeout(debounceTimer);
-    off(postsRef);
+    off(postsQuery);
     off(votesRef);
     off(commentsRef);
   };

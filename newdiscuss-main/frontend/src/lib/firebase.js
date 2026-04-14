@@ -11,6 +11,8 @@ import {
   off,
   query,
   orderByChild,
+  limitToLast,
+  equalTo,
 } from 'firebase/database';
 import {
   getAuth,
@@ -71,6 +73,8 @@ export {
   off,
   query,
   orderByChild,
+  limitToLast,
+  equalTo,
   signInWithPopup,
   signInWithRedirect,
   getRedirectResult,

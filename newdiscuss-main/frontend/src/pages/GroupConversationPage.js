@@ -19,7 +19,6 @@ import {
   replyPreviewText,
 } from '@/lib/chatMessageUtils';
 import Header from '@/components/Header';
-import ChatLinkText from '@/components/ChatLinkText';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,6 +101,11 @@ export default function GroupConversationPage() {
 
     const loadGroupData = async () => {
       try {
+        const cachedMessages = await getCachedGroupMessages(user.id, groupId);
+        if (cachedMessages?.length > 0) {
+          setMessages(cachedMessages);
+        }
+
         await checkMembershipStatus();
 
         const info = await getGroupInfo(groupId);
@@ -130,14 +134,6 @@ export default function GroupConversationPage() {
         const userGroupRef = (await import('@/lib/firebaseFourth')).ref;
         const fourthDatabase = (await import('@/lib/firebaseFourth')).fourthDatabase;
         const fourthGet = (await import('@/lib/firebaseFourth')).get;
-        
-        // Handle case where fourth database is not initialized
-        if (!fourthDatabase) {
-          setLoading(false);
-          setLiveMessagesSynced(true);
-          return;
-        }
-
         const userGroupSnap = await fourthGet(
           userGroupRef(fourthDatabase, `userGroups/${user.id}/${groupId}`)
         );
@@ -148,16 +144,6 @@ export default function GroupConversationPage() {
         const deletedIds = await getDeletedGroupMessages(user.id, groupId);
         setDeletedMessageIds(deletedIds);
         deletedIdsRef.current = deletedIds;
-
-        const cachedMessages = await getCachedGroupMessages(user.id, groupId);
-        if (cachedMessages?.length > 0) {
-          const filteredCache = cachedMessages.filter((msg) => {
-            if (deletedIds.includes(msg.id)) return false;
-            if (!jt) return true;
-            return new Date(msg.timestamp) >= new Date(jt);
-          });
-          setMessages(filteredCache);
-        }
 
         await markGroupMessagesAsRead(groupId, user.id);
 
@@ -248,11 +234,7 @@ export default function GroupConversationPage() {
 
   const handleReply = (message) => {
     setReplyTo(message);
-    setTimeout(() => {
-      inputRef.current?.focus();
-      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    inputRef.current?.focus();
   };
 
   const handleCopy = (text) => {
@@ -292,14 +274,6 @@ export default function GroupConversationPage() {
       setDeleteForEveryone(false);
     }
   };
-
-  useEffect(() => {
-    if (!loading && messages.length > 0 && messagesEndRef.current) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-      }, 100);
-    }
-  }, [loading, liveMessagesSynced]);
 
   const openDeleteDialog = (message, forEveryone = false) => {
     setMessageToDelete(message);
@@ -346,16 +320,8 @@ export default function GroupConversationPage() {
     if (isSystemMessage) {
       return (
         <div key={message.id} className="flex justify-center my-4">
-          <div
-            className="bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#333333] px-4 py-2 rounded-full max-w-[80%]"
-            style={document.documentElement.classList.contains('discuss-black')
-              ? { backgroundColor: 'rgba(255,0,127,0.1)', borderColor: 'rgba(255,0,127,0.2)' }
-              : {}}
-          >
-            <p
-              className="text-xs text-neutral-600 dark:text-neutral-300 discuss:text-[#9CA3AF] text-center"
-              style={document.documentElement.classList.contains('discuss-black') ? { color: '#C8C8E0' } : {}}
-            >{message.text}</p>
+          <div className="bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#333333] px-4 py-2 rounded-full max-w-[80%]">
+            <p className="text-xs text-neutral-600 dark:text-neutral-300 discuss:text-[#9CA3AF] text-center">{message.text}</p>
           </div>
         </div>
       );
@@ -385,7 +351,7 @@ export default function GroupConversationPage() {
                 {isDeletedForEveryone(message) ? (
                   <em>{DELETED_MESSAGE_PREVIEW}</em>
                 ) : (
-                  <ChatLinkText text={message.text} />
+                  message.text
                 )}
               </p>
               <p className={`text-[10px] mt-1 ${isOwn ? 'text-white/60' : 'text-neutral-400 dark:text-neutral-500'}`}>{formatTime(message.timestamp)}</p>
@@ -445,12 +411,7 @@ export default function GroupConversationPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-bold text-base text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5]">{groupInfo?.name || 'Group'}</h1>
-                <span
-                  className="bg-[#2563EB]/10 discuss:bg-[#EF4444]/10 text-[#2563EB] discuss:text-[#EF4444] text-[10px] font-bold px-2 py-0.5 rounded-full"
-                  style={document.documentElement.classList.contains('discuss-black')
-                    ? { backgroundColor: 'rgba(255,0,127,0.15)', color: '#FF007F' }
-                    : {}}
-                >Group Chat</span>
+                <span className="bg-[#2563EB]/10 discuss:bg-[#EF4444]/10 text-[#2563EB] discuss:text-[#EF4444] text-[10px] font-bold px-2 py-0.5 rounded-full">Group Chat</span>
                 {groupInfo?.settings?.autoDelete24h && <span className="bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" title="24h auto-delete enabled"><Clock className="w-3 h-3" />24h</span>}
                 {isAdminOnlyMode && <span className="bg-purple-500/20 text-purple-600 dark:text-purple-400 text-[10px] font-bold px-2 py-0.5 rounded-full" title="Admin-only messaging">Admin Only</span>}
               </div>
@@ -498,16 +459,8 @@ export default function GroupConversationPage() {
             Object.entries(groupedMessages).map(([date, dateMessages]) => (
               <div key={date}>
                 <div className="flex justify-center my-4">
-                  <div
-                    className="bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#333333] px-3 py-1 rounded-full"
-                    style={document.documentElement.classList.contains('discuss-black')
-                      ? { backgroundColor: 'rgba(255,0,127,0.1)' }
-                      : {}}
-                  >
-                    <p
-                      className="text-xs text-neutral-600 dark:text-neutral-300 discuss:text-[#9CA3AF] font-medium"
-                      style={document.documentElement.classList.contains('discuss-black') ? { color: '#C8C8E0' } : {}}
-                    >{date}</p>
+                  <div className="bg-neutral-200 dark:bg-neutral-700 discuss:bg-[#333333] px-3 py-1 rounded-full">
+                    <p className="text-xs text-neutral-600 dark:text-neutral-300 discuss:text-[#9CA3AF] font-medium">{date}</p>
                   </div>
                 </div>
                 {dateMessages.map(renderMessage)}
