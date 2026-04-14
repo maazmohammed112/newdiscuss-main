@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { HighlightsProvider } from '@/contexts/HighlightsContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Toaster } from '@/components/ui/sonner';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -108,8 +109,10 @@ function App() {
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <AppRoutes />
-            <Toaster position="top-right" />
+            <HighlightsProvider>
+              <AppRoutes />
+              <Toaster position="top-right" />
+            </HighlightsProvider>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
