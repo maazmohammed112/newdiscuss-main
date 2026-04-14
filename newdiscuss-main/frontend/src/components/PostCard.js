@@ -6,6 +6,8 @@ import CommentsSection from '@/components/CommentsSection';
 import ShareModal from '@/components/ShareModal';
 import EditPostModal from '@/components/EditPostModal';
 import LinkifiedText from '@/components/LinkifiedText';
+import { parseTextWithLinks } from '@/components/LinkifiedText';
+import LinkPreview from '@/components/LinkPreview';
 import ExpandableText from '@/components/ExpandableText';
 import ExternalLinkModal from '@/components/ExternalLinkModal';
 import UserPreviewModal from '@/components/UserPreviewModal';
@@ -54,6 +56,15 @@ export default function PostCard({ post, currentUser, onDeleted, onUpdated, onVo
   const userVote = (post.votes || {})[currentUser?.id] || null;
   const upvoteCount = post.upvote_count || 0;
   const downvoteCount = post.downvote_count || 0;
+
+  // Extract first URL from discussion post content for link preview
+  const firstLinkUrl = !isProject
+    ? (() => {
+        const parts = parseTextWithLinks(post.content || '');
+        const linkPart = parts.find(p => p.type === 'link');
+        return linkPart?.href || null;
+      })()
+    : null;
 
   // Check for new comment badge (only for post author) - real-time
   useEffect(() => {
@@ -186,6 +197,16 @@ export default function PostCard({ post, currentUser, onDeleted, onUpdated, onVo
               <span className="whitespace-pre-wrap"><LinkifiedText text={post.content} /></span>
             </ExpandableText>
           </div>
+
+          {/* Link Preview — discussion posts only, first URL found */}
+          {firstLinkUrl && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <LinkPreview
+                url={firstLinkUrl}
+                onClick={(url) => handleExternalLink(url, null)}
+              />
+            </div>
+          )}
 
           {hashtags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3" onClick={(e) => e.stopPropagation()}>

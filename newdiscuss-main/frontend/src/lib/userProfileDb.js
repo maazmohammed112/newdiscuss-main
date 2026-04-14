@@ -10,6 +10,7 @@ import {
   update,
   remove
 } from './firebaseSecondary';
+import { withTimeout } from './timeoutHelper';
 
 // Character limit for bio
 export const BIO_CHAR_LIMIT = 250;
@@ -38,7 +39,7 @@ export const getUserProfile = async (userId) => {
     }
 
     const profileRef = ref(secondaryDatabase, `userProfiles/${userId}`);
-    const snapshot = await get(profileRef);
+    const snapshot = await withTimeout(get(profileRef), 5000, 'Profile fetch');
     
     if (snapshot.exists()) {
       const data = {
@@ -66,7 +67,7 @@ export const saveUserProfile = async (userId, profileData) => {
   try {
     invalidateUserProfileCache(userId);
     const profileRef = ref(secondaryDatabase, `userProfiles/${userId}`);
-    const snapshot = await get(profileRef);
+    const snapshot = await withTimeout(get(profileRef), 5000, 'Profile save check');
     
     const dataToSave = {
       ...profileData,

@@ -24,7 +24,6 @@ export default function FeedPage() {
   const { user } = useAuth();
   const [allPosts, setAllPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [pageLoading, setPageLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [searchQuery, setSearchQuery] = useState('');
@@ -76,12 +75,7 @@ export default function FeedPage() {
     loadWithCache();
   }, []);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setPageLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
 
-  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 250);
     return () => clearTimeout(timer);
@@ -130,9 +124,8 @@ export default function FeedPage() {
   }, []);
 
   useEffect(() => {
-    fetchPosts();
     fetchTrendingTags();
-  }, [fetchPosts, fetchTrendingTags]);
+  }, [fetchTrendingTags]);
 
   // Firebase real-time listener
   useEffect(() => {
@@ -203,10 +196,6 @@ export default function FeedPage() {
       )
     );
   }, []);
-
-  if (pageLoading) {
-    return <LoadingScreen message="Loading your feed..." />;
-  }
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 discuss:bg-[#121212]">

@@ -389,29 +389,15 @@ export const getPosts = async (searchQuery = null) => {
   const votesRef = ref(database, 'votes');
   const commentsRef = ref(database, 'comments');
   
-  // Fetch primary database
+  // Fetch primary databases in parallel
   const [postsSnap, votesSnap, commentsSnap] = await Promise.all([
     get(postsRef),
     get(votesRef),
     get(commentsRef)
   ]);
   
-  // Fetch secondary database with timeout - don't block if it fails
-  let secondaryComments = {};
-  try {
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Secondary DB timeout')), 3000)
-    );
-    const secondaryCommentsRef = secondaryRef(secondaryDatabase, 'comments');
-    const secondaryCommentsSnap = await Promise.race([
-      secondaryGet(secondaryCommentsRef),
-      timeoutPromise
-    ]);
-    secondaryComments = secondaryCommentsSnap?.exists?.() ? secondaryCommentsSnap.val() : {};
-  } catch (e) {
-    // Secondary database unavailable - continue without it
-    console.warn('Secondary database unavailable (continuing without it):', e.message);
-  }
+  // Use the shared secondary-comments cache (fetched once, reused for 2 min)
+  const secondaryComments = await _getSecondaryCommentsCached();
   
   const posts = postsSnap.exists() ? postsSnap.val() : {};
   const votes = votesSnap.exists() ? votesSnap.val() : {};
@@ -423,8 +409,6 @@ export const getPosts = async (searchQuery = null) => {
     const newComments = secondaryComments[id] || {};
     const upvotes = Object.values(postVotes).filter(v => v === 'up').length;
     const downvotes = Object.values(postVotes).filter(v => v === 'down').length;
-    
-    // Count comments from both databases
     const totalCommentCount = Object.keys(oldComments).length + Object.keys(newComments).length;
     
     return {
@@ -703,50 +687,98 @@ export const getUserStats = async (userId) => {
 
 // ==================== REALTIME LISTENERS ====================
 
-export const subscribeToPostsRealtime = (callback) => {
-  const postsRef = ref(database, 'posts');
-  const votesRef = ref(database, 'votes');
-  const commentsRef = ref(database, 'comments');
-  
-  let secondCommentsRef = null;
-  let secondaryListenerActive = false;
-  
-  const updatePosts = async () => {
-    try {
-      const posts = await getPosts();
-      callback(posts);
-    } catch (e) {
-      console.warn('Error updating posts:', e);
-    }
-  };
-  
-  onValue(postsRef, updatePosts);
-  onValue(votesRef, updatePosts);
-  onValue(commentsRef, updatePosts);
-  
-  // Try to listen to secondary database comments (optional - don't block if fails)
-  try {
-    secondCommentsRef = secondaryRef(secondaryDatabase, 'comments');
-    secondaryOnValue(secondCommentsRef, updatePosts, (error) => {
-      console.warn('Secondary database listener error (non-blocking):', error.message);
-    });
-    secondaryListenerActive = true;
-  } catch (e) {
-    console.warn('Failed to setup secondary database listener (non-blocking):', e.message);
+// ── Secondary comments in-memory cache (2-minute TTL) ─────────────────────────
+// The secondary DB is fetched ONCE on subscription, then reused for 2 min.
+// This eliminates the 3-8s secondary-DB stampede that fires on every vote/comment change.
+let _secondaryCommentsCache = null;
+let _secondaryCommentsCacheTs = 0;
+const SECONDARY_COMMENTS_TTL = 2 * 60 * 1000; // 2 minutes
+
+const _getSecondaryCommentsCached = async () => {
+  if (_secondaryCommentsCache && Date.now() - _secondaryCommentsCacheTs < SECONDARY_COMMENTS_TTL) {
+    return _secondaryCommentsCache;
   }
-  
+  try {
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Secondary DB timeout')), 4000)
+    );
+    const secondaryCommentsRootRef = secondaryRef(secondaryDatabase, 'comments');
+    const snap = await Promise.race([secondaryGet(secondaryCommentsRootRef), timeoutPromise]);
+    const data = snap?.exists?.() ? snap.val() : {};
+    _secondaryCommentsCache = data;
+    _secondaryCommentsCacheTs = Date.now();
+    return data;
+  } catch (e) {
+    console.warn('[RT] Secondary DB unavailable (using cache/empty):', e.message);
+    return _secondaryCommentsCache || {};
+  }
+};
+
+// Build posts array directly from snapshots — avoids a second round-trip to Firebase
+const _buildPostsFromSnapshots = (postsVal, votesVal, commentsVal, secondaryComments) => {
+  const posts = postsVal || {};
+  const votes = votesVal || {};
+  const comments = commentsVal || {};
+
+  return Object.entries(posts)
+    .map(([id, post]) => {
+      const postVotes = votes[id] || {};
+      const oldComments = comments[id] || {};
+      const newComments = secondaryComments[id] || {};
+      return {
+        id,
+        ...post,
+        upvote_count: Object.values(postVotes).filter(v => v === 'up').length,
+        downvote_count: Object.values(postVotes).filter(v => v === 'down').length,
+        comment_count: Object.keys(oldComments).length + Object.keys(newComments).length,
+        votes: postVotes,
+      };
+    })
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+};
+
+export const subscribeToPostsRealtime = (callback) => {
+  const postsRef   = ref(database, 'posts');
+  const votesRef   = ref(database, 'votes');
+  const commentsRef = ref(database, 'comments');
+
+  // Snapshot holders — updated by each individual listener
+  let snapshotPosts    = null;
+  let snapshotVotes    = null;
+  let snapshotComments = null;
+
+  // Debounce: if multiple nodes fire at once, only rebuild once
+  let debounceTimer = null;
+  const scheduleUpdate = () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      if (!snapshotPosts) return;
+      try {
+        const secondaryComments = await _getSecondaryCommentsCached();
+        const built = _buildPostsFromSnapshots(snapshotPosts, snapshotVotes, snapshotComments, secondaryComments);
+        // Also update the db.js local cache so getPosts() is fast on next call
+        await cacheData('posts_all', built);
+        callback(built);
+      } catch (e) {
+        console.warn('[RT] Error building posts:', e);
+      }
+    }, 150); // 150ms debounce — coalesces rapid burst events
+  };
+
+  const handlePosts    = (snap) => { snapshotPosts    = snap.exists() ? snap.val() : {}; scheduleUpdate(); };
+  const handleVotes    = (snap) => { snapshotVotes    = snap.exists() ? snap.val() : {}; scheduleUpdate(); };
+  const handleComments = (snap) => { snapshotComments = snap.exists() ? snap.val() : {}; scheduleUpdate(); };
+
+  onValue(postsRef,    handlePosts);
+  onValue(votesRef,    handleVotes);
+  onValue(commentsRef, handleComments);
+
   // Return unsubscribe function
   return () => {
+    clearTimeout(debounceTimer);
     off(postsRef);
     off(votesRef);
     off(commentsRef);
-    if (secondaryListenerActive && secondCommentsRef) {
-      try {
-        secondaryOff(secondCommentsRef);
-      } catch (e) {
-        // Ignore errors when unsubscribing
-      }
-    }
   };
 };
 

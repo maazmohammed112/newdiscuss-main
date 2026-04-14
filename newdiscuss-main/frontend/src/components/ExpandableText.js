@@ -61,7 +61,7 @@ export default function ExpandableText({ text, maxLines = 5, children }) {
         <button
           data-testid="expand-toggle"
           onClick={handleToggle}
-          className="text-[#EF4444] hover:text-[#DC2626] text-[13px] font-semibold mt-1 inline-block"
+          className="text-[#2563EB] dark:text-[#60A5FA] discuss:text-[#EF4444] hover:text-[#1D4ED8] dark:hover:text-[#93C5FD] discuss:hover:text-[#DC2626] text-[13px] font-semibold mt-1 inline-block transition-colors"
         >
           {expanded ? 'Less' : 'More...'}
         </button>
