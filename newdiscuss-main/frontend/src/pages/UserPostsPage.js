@@ -11,6 +11,7 @@ import FriendRequestButton from '@/components/FriendRequestButton';
 import ImagePreviewModal from '@/components/ImagePreviewModal';
 import { ArrowLeft, User, FileText, Calendar, Loader2, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 
+
 export default function UserPostsPage() {
   const { userId } = useParams();
   const { user: currentUser } = useAuth();
@@ -93,7 +94,11 @@ export default function UserPostsPage() {
                     onClick={() => setShowImagePreview(true)}
                     className="relative group shrink-0"
                   >
-                    <UserAvatar src={userData.photo_url} username={userData.username} className="w-14 h-14 rounded-full object-cover shadow-md discuss:shadow-none discuss:border discuss:border-[#333333] group-hover:opacity-90 transition-opacity" />
+                    <UserAvatar
+                      src={userData.photo_url}
+                      username={userData.username}
+                      className="w-14 h-14 shadow-md discuss:shadow-none discuss:border discuss:border-[#333333] group-hover:opacity-90 transition-opacity"
+                    />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                       <div className="bg-black/50 rounded-full p-1.5">
                         <User className="w-3.5 h-3.5 text-white" />
@@ -101,8 +106,8 @@ export default function UserPostsPage() {
                     </div>
                   </button>
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center shadow-md shadow-[#2563EB]/20 discuss:shadow-none discuss:border discuss:border-[#333333] shrink-0">
-                    <span className="text-white text-lg font-bold">{initials}</span>
+                  <div className="shrink-0">
+                    <UserAvatar src={null} username={userData?.username} className="w-14 h-14" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">

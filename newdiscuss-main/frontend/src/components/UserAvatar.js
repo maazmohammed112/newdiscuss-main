@@ -17,6 +17,7 @@
  */
 
 import { useState } from 'react';
+import { User } from 'lucide-react';
 
 /**
  * @param {string}  src          — image URL (photo_url / photoURL)
@@ -35,21 +36,18 @@ export default function UserAvatar({
 }) {
   const [failed, setFailed] = useState(false);
 
-  const letter = (username?.[0] || '?').toUpperCase();
   const altText = alt || username || 'User';
 
   // Show letter fallback if: no src, or the image failed to load
   if (!src || failed) {
     return (
       <div
-        className={`${className} rounded-full flex items-center justify-center text-white font-bold select-none flex-shrink-0`}
-        style={{ background: fallbackBg, ...style }}
+        className={`${className} rounded-full flex items-center justify-center text-[#6275AF] dark:text-[#94A3B8] discuss:text-[#9CA3AF] bg-[#F1F5F9] dark:bg-[#1E293B] discuss:bg-[#262626] border border-[#E2E8F0] dark:border-[#334155] discuss:border-[#333333] flex-shrink-0`}
+        style={style}
         aria-label={altText}
         role="img"
       >
-        <span style={{ fontSize: 'calc(0.4 * min(100%, 100%))' }}>
-          {letter}
-        </span>
+        <User className="w-1/2 h-1/2" />
       </div>
     );
   }

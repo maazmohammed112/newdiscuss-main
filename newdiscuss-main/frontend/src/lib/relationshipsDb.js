@@ -26,10 +26,25 @@ export const RELATIONSHIP_STATUS = {
   UNFOLLOWED: 'unfollowed'
 };
 
+// ── In-memory cache for user search (avoids full-table reads on every search keystroke) ──
+let _allUsersCache = null;
+let _allUsersCacheTs = 0;
+const ALL_USERS_TTL = 3 * 60 * 1000; // 3 minutes
+
+const _getAllUsersCacheFresh = () => {
+  if (_allUsersCache && Date.now() - _allUsersCacheTs < ALL_USERS_TTL) return _allUsersCache;
+  return null;
+};
+
+
 /**
  * Get all users from primary database for search
  */
 export const getAllUsersForSearch = async () => {
+  // Return from memory cache if fresh
+  const cached = _getAllUsersCacheFresh();
+  if (cached) return cached;
+
   try {
     // Import from primary database
     const { database, ref: primaryRef, get: primaryGet } = await import('./firebase');
@@ -39,7 +54,7 @@ export const getAllUsersForSearch = async () => {
     if (!snapshot.exists()) return [];
     
     const users = snapshot.val();
-    return Object.entries(users).map(([id, user]) => ({
+    const result = Object.entries(users).map(([id, user]) => ({
       id,
       username: user.username,
       email: user.email,
@@ -47,6 +62,11 @@ export const getAllUsersForSearch = async () => {
       verified: user.verified || false,
       created_at: user.created_at
     }));
+
+    // Store in cache
+    _allUsersCache = result;
+    _allUsersCacheTs = Date.now();
+    return result;
   } catch (error) {
     console.error('Error fetching users:', error);
     return [];

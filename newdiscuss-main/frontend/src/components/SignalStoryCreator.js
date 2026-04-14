@@ -5,6 +5,7 @@ import { createStory } from '@/lib/storiesDb';
 import { X, Zap, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+
 const MAX_CHARS = 350;
 
 export default function SignalStoryCreator({ onClose, onCreated }) {
@@ -96,16 +97,11 @@ export default function SignalStoryCreator({ onClose, onCreated }) {
 
         {/* Author row */}
         <div className="flex items-center gap-2.5 px-5 pb-3">
-          {user?.photo_url ? (
-            <UserAvatar src={user.photo_url} username={user.username} className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-400/40" />
-          ) : (
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: 'linear-gradient(135deg,#a855f7,#ec4899)' }}
-            >
-              {(user?.username?.[0] || 'U').toUpperCase()}
-            </div>
-          )}
+          <UserAvatar
+            src={user?.photo_url}
+            username={user?.username}
+            className="w-8 h-8 ring-2 ring-purple-400/40"
+          />
           <div>
             <p className="text-[13px] font-semibold text-neutral-800 dark:text-neutral-100 discuss:text-[#F5F5F5]">
               {user?.username}

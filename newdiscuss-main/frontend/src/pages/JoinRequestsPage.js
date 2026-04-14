@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 
+
 export default function JoinRequestsPage() {
   const { user } = useAuth();
   const { markGroupRequestsViewed, pendingGroupRequests } = useHighlights();
@@ -216,15 +217,11 @@ export default function JoinRequestsPage() {
                             return (
                               <div key={request.userId} className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-700 discuss:bg-[#262626] rounded-lg">
                                 <div className="flex items-center gap-3">
-                                  {details?.photo_url ? (
-                                    <UserAvatar src={details.photo_url} className="w-10 h-10 rounded-full" />
-                                  ) : (
-                                    <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
-                                      <span className="text-white font-bold text-sm">
-                                        {details?.username?.slice(0, 2).toUpperCase()}
-                                      </span>
-                                    </div>
-                                  )}
+                                  <UserAvatar
+                                    src={details?.photo_url}
+                                    username={details?.username || 'User'}
+                                    className="w-10 h-10"
+                                  />
                                   <div>
                                     <div className="flex items-center gap-1">
                                       <button onClick={() => navigate(`/user/${request.userId}`, { state: { from: location.pathname } })} className="font-semibold text-sm text-neutral-900 dark:text-neutral-50 discuss:text-[#F5F5F5] hover:underline text-left">

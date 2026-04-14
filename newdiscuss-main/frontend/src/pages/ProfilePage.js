@@ -571,7 +571,11 @@ export default function ProfilePage() {
               onClick={() => setShowImagePreview(true)}
               className="relative group mx-auto mb-5 block"
             >
-              <UserAvatar src={user.photo_url} username={user.username} className="w-24 h-24 mx-auto shadow-lg discuss:shadow-none object-cover discuss:border discuss:border-[#333333] rounded-full group-hover:opacity-90 transition-opacity" />
+              <UserAvatar
+                src={user.photo_url}
+                username={user.username}
+                className="w-24 h-24 mx-auto shadow-lg discuss:shadow-none object-cover discuss:border discuss:border-[#333333] rounded-full group-hover:opacity-90 transition-opacity"
+              />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="bg-black/50 rounded-full p-2">
                   <ImageIcon className="w-5 h-5 text-white" />
@@ -579,8 +583,8 @@ export default function ProfilePage() {
               </div>
             </button>
           ) : (
-            <div className="w-24 h-24 bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center mx-auto mb-5 shadow-lg shadow-[#2563EB]/20 discuss:shadow-none discuss:border discuss:border-[#333333] rounded-full">
-              <span className="text-white discuss:text-white text-2xl font-bold">{initials}</span>
+            <div className="w-24 h-24 mx-auto mb-5">
+              <UserAvatar src={null} username={user?.username} className="w-24 h-24" />
             </div>
           )}
 
@@ -916,13 +920,11 @@ export default function ProfilePage() {
                             onClick={() => navigate(`/user/${request.fromUserId}`)}
                             className="flex items-center gap-3 flex-1 min-w-0"
                           >
-                            {reqUser?.photo_url ? (
-                              <UserAvatar src={reqUser.photo_url} username={reqUser.username} className="w-10 h-10 rounded-full object-cover" />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
-                                <span className="text-white text-sm font-bold">{initials}</span>
-                              </div>
-                            )}
+                            <UserAvatar
+                              src={reqUser?.photo_url}
+                              username={reqUser?.username || 'User'}
+                              className="w-10 h-10"
+                            />
                             <div className="text-left min-w-0">
                               <span className="font-semibold text-[#0F172A] dark:text-[#F1F5F9] discuss:text-[#F5F5F5] text-sm block truncate">
                                 @{reqUser?.username || 'Unknown'}
@@ -976,13 +978,11 @@ export default function ProfilePage() {
                             onClick={() => navigate(`/user/${request.toUserId}`)}
                             className="flex items-center gap-3 flex-1 min-w-0"
                           >
-                            {reqUser?.photo_url ? (
-                              <UserAvatar src={reqUser.photo_url} username={reqUser.username} className="w-10 h-10 rounded-full object-cover" />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
-                                <span className="text-white text-sm font-bold">{initials}</span>
-                              </div>
-                            )}
+                            <UserAvatar
+                              src={reqUser?.photo_url}
+                              username={reqUser?.username || 'User'}
+                              className="w-10 h-10"
+                            />
                             <div className="text-left min-w-0">
                               <span className="font-semibold text-[#0F172A] dark:text-[#F1F5F9] discuss:text-[#F5F5F5] text-sm block truncate">
                                 @{reqUser?.username || 'Unknown'}
@@ -1083,13 +1083,11 @@ export default function ProfilePage() {
                                   onClick={() => navigate(`/user/${suggested.id}`)}
                                   className="flex items-center gap-3 flex-1 min-w-0"
                                 >
-                                  {suggested.photo_url ? (
-                                    <UserAvatar src={suggested.photo_url} username={suggested.username} className="w-10 h-10 rounded-full object-cover" />
-                                  ) : (
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2563EB] to-[#7C3AED] discuss:from-[#EF4444] discuss:to-[#F59E0B] flex items-center justify-center">
-                                      <span className="text-white text-sm font-bold">{initials}</span>
-                                    </div>
-                                  )}
+                                  <UserAvatar
+                                    src={suggested?.photo_url}
+                                    username={suggested?.username || 'User'}
+                                    className="w-10 h-10"
+                                  />
                                   <div className="text-left min-w-0">
                                     <span className="font-semibold text-[#0F172A] dark:text-[#F1F5F9] discuss:text-[#F5F5F5] text-sm block truncate flex items-center gap-1">
                                       @{suggested.username}
@@ -1134,13 +1132,11 @@ export default function ProfilePage() {
                             onClick={() => navigate(`/user/${friend.id}`)}
                             className="flex items-center gap-3 flex-1 min-w-0"
                           >
-                            {friend.photo_url ? (
-                              <UserAvatar src={friend.photo_url} username={friend.username} className="w-10 h-10 rounded-full object-cover" />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
-                                <span className="text-white text-sm font-bold">{initials}</span>
-                              </div>
-                            )}
+                            <UserAvatar
+                              src={friend?.photo_url}
+                              username={friend?.username || 'User'}
+                              className="w-10 h-10"
+                            />
                             <div className="text-left min-w-0">
                               <span className="font-semibold text-[#0F172A] dark:text-[#F1F5F9] discuss:text-[#F5F5F5] text-sm block truncate">
                                 @{friend.username}

@@ -5,6 +5,7 @@ import FriendRequestButton from './FriendRequestButton';
 import VerifiedBadge from './VerifiedBadge';
 import { User } from 'lucide-react';
 
+
 export default function UserSearchResult({ 
   user, 
   currentUserId,
@@ -25,13 +26,11 @@ export default function UserSearchResult({
         onClick={handleViewProfile}
         className="flex items-center gap-3 flex-1 min-w-0 text-left"
       >
-        {user.photo_url ? (
-          <UserAvatar src={user.photo_url} username={user.username} className="w-10 h-10 rounded-full object-cover shrink-0" />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center shrink-0">
-            <span className="text-white text-sm font-bold">{initials}</span>
-          </div>
-        )}
+        <UserAvatar
+          src={user.photo_url}
+          username={user.username}
+          className="w-10 h-10 shrink-0"
+        />
         <div className="min-w-0">
           <div className="flex items-center gap-1">
             <span className="font-semibold text-[#0F172A] dark:text-[#F1F5F9] discuss:text-[#F5F5F5] text-sm truncate">

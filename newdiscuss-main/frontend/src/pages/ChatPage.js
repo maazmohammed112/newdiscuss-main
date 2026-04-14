@@ -423,13 +423,11 @@ export default function ChatPage() {
         } border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] ${hasUnread ? 'ring-1 ring-[#2563EB]/20 discuss:ring-[#EF4444]/20' : ''} shadow-card`}
       >
         <div className="relative shrink-0">
-          {otherUser.photo_url ? (
-            <UserAvatar src={otherUser.photo_url} username={otherUser.username} className="w-12 h-12 rounded-full object-cover" />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
-              <span className="text-white font-bold">{initials}</span>
-            </div>
-          )}
+          <UserAvatar
+            src={otherUser.photo_url}
+            username={otherUser.username}
+            className="w-12 h-12"
+          />
           {hasUnread && (
             <span className="absolute -top-1 -right-1 bg-[#EF4444] text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 shadow-sm">
               {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
@@ -538,13 +536,11 @@ export default function ChatPage() {
         onClick={() => handleStartNewChat(friend.id)}
         className="w-full flex items-center gap-3 p-3 bg-white dark:bg-neutral-800 discuss:bg-[#1a1a1a] rounded-[12px] hover:shadow-card-hover dark:hover:shadow-none transition-all border border-neutral-200 dark:border-neutral-700 discuss:border-[#333333] shadow-card"
       >
-        {friend.photo_url ? (
-          <UserAvatar src={friend.photo_url} username={friend.username} className="w-12 h-12 rounded-full object-cover shrink-0" />
-        ) : (
-          <div className="w-12 h-12 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center shrink-0">
-            <span className="text-white font-bold">{initials}</span>
-          </div>
-        )}
+        <UserAvatar
+          src={friend.photo_url}
+          username={friend.username}
+          className="w-12 h-12 shrink-0"
+        />
         
         <div className="flex-1 min-w-0 text-left">
           <div className="flex items-center gap-1">

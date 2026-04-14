@@ -632,13 +632,11 @@ export default function ChatConversationPage() {
               onClick={() => navigate(`/user/${otherUserId}`)}
               className="flex items-center gap-3"
             >
-              {otherUser.photo_url ? (
-                <UserAvatar src={otherUser.photo_url} username={otherUser.username} className="w-10 h-10 rounded-full object-cover" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">{initials}</span>
-                </div>
-              )}
+              <UserAvatar
+                src={otherUser.photo_url}
+                username={otherUser.username}
+                className="w-10 h-10"
+              />
               
               <div className="text-left">
                 <div className="flex items-center gap-1">
@@ -809,13 +807,11 @@ export default function ChatConversationPage() {
                     )}
 
                     {!isOwn && showAvatar && (
-                      otherUser.photo_url ? (
-                        <UserAvatar src={otherUser.photo_url} username={otherUser.username} className="w-6 h-6 rounded-full object-cover shrink-0" />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center shrink-0">
-                          <span className="text-white text-[10px] font-bold">{initials}</span>
-                        </div>
-                      )
+                      <UserAvatar
+                        src={otherUser.photo_url}
+                        username={otherUser.username}
+                        className="w-6 h-6 shrink-0"
+                      />
                     )}
                     {!isOwn && !showAvatar && <div className="w-6" />}
                     

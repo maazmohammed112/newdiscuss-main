@@ -10,6 +10,7 @@ import FriendRequestButton from '@/components/FriendRequestButton';
 import ImagePreviewModal from '@/components/ImagePreviewModal';
 import { User, FileText, Calendar, ArrowRight, Loader2, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 
+
 export default function UserPreviewModal({ open, onClose, userId, currentUserId }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -84,7 +85,11 @@ export default function UserPreviewModal({ open, onClose, userId, currentUserId 
                     onClick={() => setShowImagePreview(true)}
                     className="relative group mx-auto mb-3 block"
                   >
-                    <UserAvatar src={userData.photo_url} username={userData.username} className="w-16 h-16 rounded-full mx-auto shadow-lg discuss:shadow-none discuss:border discuss:border-[#333333] object-cover group-hover:opacity-90 transition-opacity" />
+                    <UserAvatar
+                      src={userData.photo_url}
+                      username={userData.username}
+                      className="w-16 h-16 mx-auto shadow-lg discuss:shadow-none discuss:border discuss:border-[#333333] group-hover:opacity-90 transition-opacity"
+                    />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                       <div className="bg-black/50 rounded-full p-1.5">
                         <User className="w-3.5 h-3.5 text-white" />
@@ -92,8 +97,8 @@ export default function UserPreviewModal({ open, onClose, userId, currentUserId 
                     </div>
                   </button>
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center mx-auto mb-3 shadow-lg shadow-[#2563EB]/20 discuss:shadow-none discuss:border discuss:border-[#333333]">
-                    <span className="text-white text-lg font-bold">{initials}</span>
+                  <div className="mx-auto mb-3">
+                    <UserAvatar src={null} username={userData?.username} className="w-16 h-16 mx-auto" />
                   </div>
                 )}
                 

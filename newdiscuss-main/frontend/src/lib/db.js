@@ -102,6 +102,24 @@ initAdminSettings().catch(console.error);
 
 // ==================== USER OPERATIONS ====================
 
+// ── In-memory user cache (avoids repeated Firebase reads in the same session) ──
+const _userCache = new Map(); // key: userId → { data, ts }
+const USER_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+const _getUserFromCache = (userId) => {
+  const entry = _userCache.get(userId);
+  if (entry && Date.now() - entry.ts < USER_CACHE_TTL) return entry.data;
+  return null;
+};
+
+const _setUserCache = (userId, data) => {
+  _userCache.set(userId, { data, ts: Date.now() });
+};
+
+export const invalidateUserCache = (userId) => {
+  _userCache.delete(userId);
+};
+
 export const createUser = async (userId, userData) => {
   const userRef = ref(database, `users/${userId}`);
   await set(userRef, {
@@ -114,16 +132,22 @@ export const createUser = async (userId, userData) => {
 };
 
 export const getUser = async (userId) => {
+  // Return from cache if fresh
+  const cached = _getUserFromCache(userId);
+  if (cached) return cached;
+
   const userRef = ref(database, `users/${userId}`);
   const snapshot = await get(userRef);
   if (snapshot.exists()) {
     const userData = snapshot.val();
-    return { 
+    const result = { 
       id: userId, 
       ...userData,
-      verified: userData.verified || false, // Ensure verified field exists
-      admin_message: userData.admin_message || '' // Ensure admin_message field exists
+      verified: userData.verified || false,
+      admin_message: userData.admin_message || ''
     };
+    _setUserCache(userId, result);
+    return result;
   }
   return null;
 };
@@ -200,6 +224,8 @@ export const checkEmailAvailable = async (email) => {
 export const updateUser = async (userId, updates) => {
   const userRef = ref(database, `users/${userId}`);
   await update(userRef, updates);
+  // Invalidate cache so next read picks up new data
+  invalidateUserCache(userId);
 };
 
 // ==================== POST OPERATIONS ====================
