@@ -23,6 +23,10 @@ import {
   startAt,
 } from '@/lib/firebaseFifth';
 
+// -- Caching
+const _seenStoriesCache = new Map();
+const SEEN_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
 const STORY_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 // ─────────────────────────────────────────────
@@ -157,6 +161,11 @@ export function subscribeToActiveStories(callback) {
 export async function markStorySeen(storyId, viewerId) {
   if (!isFifthDbAvailable() || !storyId || !viewerId) return;
   try {
+    const cached = _seenStoriesCache.get(viewerId);
+    if (cached) {
+      cached.data.add(storyId);
+    }
+    
     await Promise.all([
       set(storyViewRef(storyId, viewerId), true),
       set(userSeenItemRef(viewerId, storyId), true),
@@ -172,10 +181,22 @@ export async function markStorySeen(storyId, viewerId) {
  */
 export async function getSeenStoryIds(viewerId) {
   if (!isFifthDbAvailable() || !viewerId) return new Set();
+  
+  const cached = _seenStoriesCache.get(viewerId);
+  if (cached && Date.now() - cached.ts < SEEN_CACHE_TTL) {
+    return cached.data;
+  }
+  
   try {
     const snap = await get(userSeenRef(viewerId));
-    if (!snap.exists()) return new Set();
-    return new Set(Object.keys(snap.val()));
+    if (!snap.exists()) {
+      _seenStoriesCache.set(viewerId, { data: new Set(), ts: Date.now() });
+      return new Set();
+    }
+    
+    const result = new Set(Object.keys(snap.val()));
+    _seenStoriesCache.set(viewerId, { data: result, ts: Date.now() });
+    return result;
   } catch (err) {
     console.warn('getSeenStoryIds error:', err.message);
     return new Set();

@@ -64,6 +64,23 @@ const getCachedData = async (key, maxAge = 5 * 60 * 1000) => {
   return null;
 };
 
+export const invalidatePostsCache = async () => {
+  try {
+    const db = await getDB();
+    const tx = db.transaction('cache', 'readwrite');
+    const store = tx.objectStore('cache');
+    const keys = await store.getAllKeys();
+    for (const key of keys) {
+      if (typeof key === 'string' && key.startsWith('posts_')) {
+        store.delete(key);
+      }
+    }
+    await tx.done;
+  } catch (e) {
+    console.warn('Cache clear failed:', e);
+  }
+};
+
 // Helper to extract hashtags from text
 const extractHashtags = (text) => {
   if (!text) return [];
@@ -252,6 +269,7 @@ export const createPost = async (postData, user) => {
   
   const newPostRef = push(postsRef);
   await set(newPostRef, newPost);
+  await invalidatePostsCache();
   
   return {
     id: newPostRef.key,
@@ -307,6 +325,10 @@ export const getPostById = async (postId) => {
 };
 
 export const getPostsByUser = async (userId) => {
+  const cacheKey = `posts_user_${userId}`;
+  const cached = await getCachedData(cacheKey);
+  if (cached && cached.length > 0) return cached;
+  
   const postsRef = ref(database, 'posts');
   const votesRef = ref(database, 'votes');
   const commentsRef = ref(database, 'comments');
@@ -335,7 +357,7 @@ export const getPostsByUser = async (userId) => {
   const votes = votesSnap.exists() ? votesSnap.val() : {};
   const comments = commentsSnap.exists() ? commentsSnap.val() : {};
   
-  return Object.entries(posts)
+  const result = Object.entries(posts)
     .filter(([, p]) => p.author_id === userId)
     .map(([id, post]) => {
       const pv = votes[id] || {};
@@ -351,12 +373,17 @@ export const getPostsByUser = async (userId) => {
       };
     })
     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+  await cacheData(cacheKey, result);
+  return result;
 };
 
 
 
 export const getPosts = async (searchQuery = null) => {
   const cacheKey = `posts_${searchQuery || 'all'}`;
+  const cached = await getCachedData(cacheKey);
+  if (cached && cached.length > 0) return cached;
   
   const postsRef = ref(database, 'posts');
   const votesRef = ref(database, 'votes');
@@ -454,30 +481,59 @@ export const updatePost = async (postId, updates, userId) => {
   };
   
   await update(postRef, finalUpdates);
+  await invalidatePostsCache();
   return { id: postId, ...post, ...finalUpdates };
 };
 
 export const deletePost = async (postId, userId) => {
   const postRef = ref(database, `posts/${postId}`);
-  const snapshot = await get(postRef);
-  
-  if (!snapshot.exists()) {
-    throw new Error('Post not found');
+  const postSnap = await get(postRef);
+  if (!postSnap.exists() || postSnap.val().author_id !== userId) {
+    throw new Error('Not authorized to delete this post');
   }
   
-  const post = snapshot.val();
-  if (post.author_id !== userId) {
-    throw new Error('You can only delete your own posts');
-  }
+  const votesRef = ref(database, `votes/${postId}`);
+  const primaryCommentsRef = ref(database, `comments/${postId}`);
+  const secondaryCommentsRef = secondaryRef(secondaryDatabase, `comments/${postId}`);
   
-  // Delete post, votes, and comments
   await Promise.all([
     remove(postRef),
-    remove(ref(database, `votes/${postId}`)),
-    remove(ref(database, `comments/${postId}`))
+    remove(votesRef),
+    remove(primaryCommentsRef)
   ]);
   
+  try {
+    await secondaryRemove(secondaryCommentsRef);
+  } catch (e) {
+    console.warn('Failed to clean up secondary comments:', e.message);
+  }
+  
+  await invalidatePostsCache();
   return { message: 'Post deleted' };
+};
+
+export const upvotePost = async (postId, userId) => {
+  const voteRef = ref(database, `votes/${postId}/${userId}`);
+  const voteSnap = await get(voteRef);
+  
+  if (voteSnap.exists() && voteSnap.val() === 'up') {
+    await remove(voteRef); // Remove vote if already upvoted
+  } else {
+    await set(voteRef, 'up');
+  }
+  await invalidatePostsCache();
+};
+
+export const downvotePost = async (postId, userId) => {
+  const voteRef = ref(database, `votes/${postId}/${userId}`);
+  const voteSnap = await get(voteRef);
+  
+  if (voteSnap.exists() && voteSnap.val() === 'down') {
+    await remove(voteRef); // Remove vote if already downvoted
+  } else {
+    await set(voteRef, 'down');
+  }
+  await invalidatePostsCache();
 };
 
 // ==================== VOTE OPERATIONS ====================
@@ -501,6 +557,8 @@ export const toggleVote = async (postId, voteType, userId) => {
   // Get updated vote counts
   const updatedVotesSnap = await get(allVotesRef);
   const updatedVotes = updatedVotesSnap.exists() ? updatedVotesSnap.val() : {};
+  
+  await invalidatePostsCache();
   
   return {
     upvote_count: Object.values(updatedVotes).filter(v => v === 'up').length,
@@ -538,10 +596,15 @@ export const createComment = async (postId, text, user) => {
   const newCommentRef = push(commentsRef);
   await set(newCommentRef, newComment);
   
-  return { id: newCommentRef.key, ...newComment };
+  await invalidatePostsCache();
+  
+  return {
+    id: newCommentRef.key,
+    ...newComment
+  };
 };
 
-export const deleteComment = async (postId, commentId, userId) => {
+export const deleteComment = async (commentId, userId, postId) => {
   const commentRef = ref(database, `comments/${postId}/${commentId}`);
   const snapshot = await get(commentRef);
   
@@ -555,6 +618,7 @@ export const deleteComment = async (postId, commentId, userId) => {
   }
   
   await remove(commentRef);
+  await invalidatePostsCache();
   return { message: 'Comment deleted' };
 };
 

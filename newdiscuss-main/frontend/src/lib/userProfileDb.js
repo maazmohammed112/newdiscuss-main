@@ -17,6 +17,14 @@ export const BIO_CHAR_LIMIT = 250;
 // Max social links allowed
 export const MAX_SOCIAL_LINKS = 5;
 
+// -- In-memory cache for User Profiles
+const _userProfileCache = new Map();
+const PROFILE_CACHE_TTL = 5 * 60 * 1000; // 5 mins
+
+export const invalidateUserProfileCache = (userId) => {
+  _userProfileCache.delete(userId);
+};
+
 /**
  * Get user profile from Realtime Database
  * @param {string} userId - Firebase Auth UID
@@ -24,15 +32,22 @@ export const MAX_SOCIAL_LINKS = 5;
  */
 export const getUserProfile = async (userId) => {
   try {
+    const cached = _userProfileCache.get(userId);
+    if (cached && Date.now() - cached.ts < PROFILE_CACHE_TTL) {
+      return cached.data;
+    }
+
     const profileRef = ref(secondaryDatabase, `userProfiles/${userId}`);
     const snapshot = await get(profileRef);
     
     if (snapshot.exists()) {
-      return {
+      const data = {
         id: userId,
         ...snapshot.val(),
         socialLinks: snapshot.val().socialLinks || []
       };
+      _userProfileCache.set(userId, { data, ts: Date.now() });
+      return data;
     }
     return null;
   } catch (error) {
@@ -49,6 +64,7 @@ export const getUserProfile = async (userId) => {
  */
 export const saveUserProfile = async (userId, profileData) => {
   try {
+    invalidateUserProfileCache(userId);
     const profileRef = ref(secondaryDatabase, `userProfiles/${userId}`);
     const snapshot = await get(profileRef);
     
@@ -88,6 +104,7 @@ export const updateFullName = async (userId, fullName) => {
  */
 export const deleteFullName = async (userId) => {
   try {
+    invalidateUserProfileCache(userId);
     const fullNameRef = ref(secondaryDatabase, `userProfiles/${userId}/fullName`);
     await remove(fullNameRef);
     
@@ -116,6 +133,7 @@ export const updateBio = async (userId, bio) => {
  */
 export const deleteBio = async (userId) => {
   try {
+    invalidateUserProfileCache(userId);
     const bioRef = ref(secondaryDatabase, `userProfiles/${userId}/bio`);
     await remove(bioRef);
     

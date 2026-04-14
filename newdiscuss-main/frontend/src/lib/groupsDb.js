@@ -18,6 +18,16 @@ import {
 } from './firebaseFourth';
 import { getUser } from './db';
 
+// -- Caching
+const _groupInfoCache = new Map();
+const _groupMembersCache = new Map();
+const GROUP_CACHE_TTL = 3 * 60 * 1000; // 3 minutes
+
+export const invalidateGroupCache = (groupId) => {
+  _groupInfoCache.delete(groupId);
+  _groupMembersCache.delete(groupId);
+};
+
 // Group types
 export const GROUP_TYPE = {
   PUBLIC: 'public',
@@ -563,10 +573,19 @@ export const subscribeToUserGroups = (userId, callback) => {
 export const getGroupInfo = async (groupId) => {
   try {
     if (!fourthDatabase) return null;
+    
+    const cached = _groupInfoCache.get(groupId);
+    if (cached && Date.now() - cached.ts < GROUP_CACHE_TTL) {
+      return cached.data;
+    }
+
     const groupRef = ref(fourthDatabase, `groups/${groupId}`);
     const snapshot = await get(groupRef);
     if (!snapshot.exists()) return null;
-    return snapshot.val();
+    
+    const data = snapshot.val();
+    _groupInfoCache.set(groupId, { data, ts: Date.now() });
+    return data;
   } catch (error) {
     console.error('Error getting group info:', error);
     return null;
@@ -576,11 +595,20 @@ export const getGroupInfo = async (groupId) => {
 export const getGroupMembers = async (groupId) => {
   try {
     if (!fourthDatabase) return [];
+    
+    const cached = _groupMembersCache.get(groupId);
+    if (cached && Date.now() - cached.ts < GROUP_CACHE_TTL) {
+      return cached.data;
+    }
+
     const membersRef = ref(fourthDatabase, `groups/${groupId}/members`);
     const snapshot = await get(membersRef);
     if (!snapshot.exists()) return [];
     const members = snapshot.val();
-    return Object.entries(members).map(([userId, data]) => ({ userId, ...data }));
+    
+    const result = Object.entries(members).map(([userId, data]) => ({ userId, ...data }));
+    _groupMembersCache.set(groupId, { data: result, ts: Date.now() });
+    return result;
   } catch (error) {
     console.error('Error getting group members:', error);
     return [];

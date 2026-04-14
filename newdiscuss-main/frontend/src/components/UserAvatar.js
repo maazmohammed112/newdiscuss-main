@@ -16,45 +16,104 @@
  *  Additional: Shows a graceful letter-avatar fallback if the image fails.
  */
 
-import { useState } from 'react';
-import { User } from 'lucide-react';
+import { useState, useMemo } from 'react';
+
+const AVATAR_COLORS = [
+  'bg-blue-500 text-white',
+  'bg-red-500 text-white',
+  'bg-green-500 text-white',
+  'bg-yellow-500 text-white',
+  'bg-purple-500 text-white',
+  'bg-pink-500 text-white',
+  'bg-indigo-500 text-white',
+  'bg-teal-500 text-white',
+  'bg-orange-500 text-white',
+  'bg-cyan-500 text-white'
+];
+
+/**
+ * Generates initials from a username.
+ * e.g., "mohammedmaaza" -> "M"
+ * "john doe" -> "JD"
+ */
+function getInitials(name) {
+  if (!name || typeof name !== 'string') return '?';
+  const cleanName = name.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+  if (!cleanName) return name.charAt(0).toUpperCase();
+
+  const parts = cleanName.split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return parts[0].substring(0, 1).toUpperCase();
+}
+
+/**
+ * Predictably picks a color based on the username string.
+ */
+function getColorClass(name) {
+  if (!name) return AVATAR_COLORS[0];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[index];
+}
+
+/**
+ * Formats Google/Firebase photo urls correctly
+ */
+function formatUrl(url) {
+  if (!url || typeof url !== 'string') return null;
+  if (url === 'null' || url === 'undefined') return null;
+  if (url.startsWith('//')) return `https:${url}`;
+  if (url.startsWith('lh3.googleusercontent')) return `https://${url}`;
+  // Sometimes Google appends size param which causes 404, stripping it to get original size
+  if (url.includes('googleusercontent.com') && url.includes('=s')) {
+    return url.split('=s')[0];
+  }
+  return url;
+}
 
 /**
  * @param {string}  src          — image URL (photo_url / photoURL)
  * @param {string}  username     — used to generate the letter fallback
  * @param {string}  [className]  — additional CSS classes (e.g. "w-9 h-9")
  * @param {string}  [alt]        — alt text (defaults to username)
- * @param {string}  [fallbackBg] — CSS background for the letter avatar
  */
 export default function UserAvatar({
   src,
   username = '?',
   className = 'w-9 h-9',
   alt,
-  fallbackBg = 'linear-gradient(135deg, #2563EB, #1d4ed8)',
   style = {},
 }) {
   const [failed, setFailed] = useState(false);
 
   const altText = alt || username || 'User';
+  const cleanSrc = formatUrl(src);
+
+  const initials = useMemo(() => getInitials(username), [username]);
+  const colorClass = useMemo(() => getColorClass(username), [username]);
 
   // Show letter fallback if: no src, or the image failed to load
-  if (!src || failed) {
+  if (!cleanSrc || failed) {
     return (
       <div
-        className={`${className} rounded-full flex items-center justify-center text-[#6275AF] dark:text-[#94A3B8] discuss:text-[#9CA3AF] bg-[#F1F5F9] dark:bg-[#1E293B] discuss:bg-[#262626] border border-[#E2E8F0] dark:border-[#334155] discuss:border-[#333333] flex-shrink-0`}
-        style={style}
+        className={`${className} rounded-full flex items-center justify-center font-bold flex-shrink-0 select-none ${colorClass}`}
+        style={{ ...style, fontSize: 'clamp(0.75rem, 40%, 2rem)' }}
         aria-label={altText}
         role="img"
       >
-        <User className="w-1/2 h-1/2" />
+        <span>{initials}</span>
       </div>
     );
   }
 
   return (
     <img
-      src={src}
+      src={cleanSrc}
       alt={altText}
       className={`${className} rounded-full object-cover flex-shrink-0`}
       style={style}

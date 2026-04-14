@@ -26,6 +26,14 @@ export const RELATIONSHIP_STATUS = {
   UNFOLLOWED: 'unfollowed'
 };
 
+// -- Friends Cache
+const _friendsCache = new Map();
+const FRIENDS_CACHE_TTL = 3 * 60 * 1000; // 3 minutes
+
+export const invalidateFriendsCache = (userId) => {
+  _friendsCache.delete(userId);
+};
+
 // ── In-memory cache for user search (avoids full-table reads on every search keystroke) ──
 let _allUsersCache = null;
 let _allUsersCacheTs = 0;
@@ -158,6 +166,9 @@ export const acceptFriendRequest = async (currentUserId, fromUserId, currentUser
       chatEnabled: true
     });
     
+    invalidateFriendsCache(currentUserId);
+    invalidateFriendsCache(fromUserId);
+    
     return { success: true };
   } catch (error) {
     console.error('Error accepting friend request:', error);
@@ -236,6 +247,9 @@ export const unfollowFriend = async (currentUserId, friendUserId) => {
       unfollowedBy: currentUserId // Track who initiated the unfollow
     });
     
+    invalidateFriendsCache(currentUserId);
+    invalidateFriendsCache(friendUserId);
+    
     return { success: true, unfollowedBy: currentUserId };
   } catch (error) {
     console.error('Error unfollowing friend:', error);
@@ -256,6 +270,9 @@ export const removeFriend = async (currentUserId, friendUserId) => {
     
     const theirFriendRef = ref(secondaryDatabase, `relationships/${friendUserId}/friends/${currentUserId}`);
     await remove(theirFriendRef);
+    
+    invalidateFriendsCache(currentUserId);
+    invalidateFriendsCache(friendUserId);
     
     return { success: true };
   } catch (error) {
@@ -342,10 +359,19 @@ export const getRelationshipDetails = async (currentUserId, otherUserId) => {
  */
 export const getFriends = async (userId, activeOnly = true) => {
   try {
+    const cacheKey = `${userId}_${activeOnly}`;
+    const cached = _friendsCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < FRIENDS_CACHE_TTL) {
+      return cached.data;
+    }
+
     const friendsRef = ref(secondaryDatabase, `relationships/${userId}/friends`);
     const snapshot = await get(friendsRef);
     
-    if (!snapshot.exists()) return [];
+    if (!snapshot.exists()) {
+       _friendsCache.set(cacheKey, { data: [], ts: Date.now() });
+       return [];
+    }
     
     const friends = snapshot.val();
     const friendsList = Object.entries(friends)
@@ -354,6 +380,8 @@ export const getFriends = async (userId, activeOnly = true) => {
         id: friendId,
         ...data
       }));
+    
+    _friendsCache.set(cacheKey, { data: friendsList, ts: Date.now() });
     
     return friendsList;
   } catch (error) {

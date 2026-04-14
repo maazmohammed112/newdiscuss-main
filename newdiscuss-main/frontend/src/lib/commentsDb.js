@@ -15,6 +15,16 @@ import {
   off
 } from './firebaseSecondary';
 
+// -- Caching
+const _commentsCache = new Map();
+const _commentCountCache = new Map();
+const COMMENTS_CACHE_TTL = 2 * 60 * 1000; // 2 minutes
+
+export const invalidateCommentsCache = (postId) => {
+  _commentsCache.delete(postId);
+  _commentCountCache.delete(postId);
+};
+
 /**
  * Create a new comment in Realtime Database
  * @param {string} postId - Post ID from primary Firebase
@@ -25,6 +35,7 @@ import {
  */
 export const createCommentFirestore = async (postId, text, user, postAuthorId = null) => {
   try {
+    invalidateCommentsCache(postId);
     const commentsRef = ref(secondaryDatabase, `comments/${postId}`);
     
     const newComment = {
@@ -284,19 +295,27 @@ export const subscribeToCommentBadges = (userId, callback) => {
  */
 export const getCommentsFirestore = async (postId) => {
   try {
+    const cached = _commentsCache.get(postId);
+    if (cached && Date.now() - cached.ts < COMMENTS_CACHE_TTL) {
+      return cached.data;
+    }
+
     const commentsRef = ref(secondaryDatabase, `comments/${postId}`);
     const snapshot = await get(commentsRef);
     
     if (!snapshot.exists()) return [];
     
     const comments = snapshot.val();
-    return Object.entries(comments)
+    const result = Object.entries(comments)
       .map(([id, comment]) => ({
         id,
         ...comment,
         replyCount: comment.replyCount || 0
       }))
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    _commentsCache.set(postId, { data: result, ts: Date.now() });
+    return result;
   } catch (error) {
     console.error('Error getting comments:', error);
     return [];
@@ -308,6 +327,7 @@ export const getCommentsFirestore = async (postId) => {
  */
 export const deleteCommentFirestore = async (commentId, userId, postId) => {
   try {
+    invalidateCommentsCache(postId);
     const commentRef = ref(secondaryDatabase, `comments/${postId}/${commentId}`);
     const snapshot = await get(commentRef);
     
@@ -378,8 +398,15 @@ export const subscribeToCommentsFirestore = (postId, callback) => {
  */
 export const getCommentCountFirestore = async (postId) => {
   try {
+    const cachedCount = _commentCountCache.get(postId);
+    if (cachedCount && Date.now() - cachedCount.ts < COMMENTS_CACHE_TTL) {
+      return cachedCount.data;
+    }
+  
     const comments = await getCommentsFirestore(postId);
-    return comments.length;
+    const count = comments.length;
+    _commentCountCache.set(postId, { data: count, ts: Date.now() });
+    return count;
   } catch {
     return 0;
   }
