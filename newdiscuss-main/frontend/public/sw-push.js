@@ -18,7 +18,7 @@
  *   • HTML is NEVER cached (always fetched fresh = no stale auth state)
  */
 
-const CACHE_VERSION = 'discuss-v4';
+const CACHE_VERSION = 'discuss-v5';
 const STATIC_CACHE  = `${CACHE_VERSION}-static`;
 const FONT_CACHE    = `${CACHE_VERSION}-fonts`;
 const OFFLINE_URL   = '/offline.html';
@@ -152,9 +152,17 @@ self.addEventListener('fetch', (event) => {
       caches.match(request).then((cached) => {
         if (cached) return cached;
         return fetch(request).then((response) => {
-          if (response.status === 200) {
+          // If Netlify returns an HTML fallback (SPA rewrite) for a missing JS chunk,
+          // do NOT cache it! It will cause "Unexpected token '<'".
+          const contentType = response.headers.get('content-type') || '';
+          if (response.status === 200 && !contentType.includes('text/html')) {
             const clone = response.clone();
             caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+            return response;
+          } else if (response.status === 200 && contentType.includes('text/html')) {
+            // It's a stale chunk request and Netlify gave us index.html.
+            // Return 404 so React's lazy loader knows it failed.
+            return new Response('Stale chunk', { status: 404 });
           }
           return response;
         }).catch(() => new Response('', { status: 503 }));

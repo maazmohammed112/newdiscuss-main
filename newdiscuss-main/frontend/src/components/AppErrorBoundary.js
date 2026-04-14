@@ -14,6 +14,20 @@ export default class AppErrorBoundary extends Component {
   componentDidCatch(error, errorInfo) {
     console.error('[AppErrorBoundary]', error, errorInfo);
     this.setState({ errorInfo });
+
+    // Auto-recovery for stale PWA chunks (e.g. Netlify returned index.html instead of a JS file)
+    const isChunkError = 
+      error?.name === 'ChunkLoadError' || 
+      (error?.message && error.message.includes("Unexpected token '<'"));
+      
+    if (isChunkError) {
+      const hasReloaded = sessionStorage.getItem('chunk_error_reloaded');
+      if (!hasReloaded) {
+        sessionStorage.setItem('chunk_error_reloaded', 'true');
+        console.warn('Stale chunk detected. Auto-reloading to fetch fresh assets...');
+        window.location.reload(true);
+      }
+    }
   }
 
   handleReload = () => {
