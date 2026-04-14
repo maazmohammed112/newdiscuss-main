@@ -86,7 +86,7 @@ export default function ShareModal({ open, onClose, post }) {
         <DialogHeader>
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 bg-[#2563EB] rounded-xl flex items-center justify-center shrink-0">
-              <img referrerPolicy="no-referrer" src={LOGO_URL} alt="Discuss" className="h-5 brightness-0 invert" />
+              <img src={LOGO_URL} alt="Discuss" className="h-5 brightness-0 invert" />
             </div>
             <DialogTitle className="font-heading text-lg font-bold text-[#0F172A] dark:text-[#F1F5F9]">Share this post</DialogTitle>
           </div>
@@ -96,7 +96,7 @@ export default function ShareModal({ open, onClose, post }) {
         <div className="bg-[#F5F5F7] dark:bg-[#0F172A] rounded-xl p-4 border border-[#E2E8F0] dark:border-[#334155] mt-2 overflow-hidden">
           <div className="flex items-start gap-3 min-w-0">
             <div className="w-12 h-12 bg-[#2563EB] rounded-xl flex items-center justify-center shrink-0">
-              <img referrerPolicy="no-referrer" src={LOGO_URL} alt="Discuss" className="h-6 brightness-0 invert" />
+              <img src={LOGO_URL} alt="Discuss" className="h-6 brightness-0 invert" />
             </div>
             {/* Text column — min-w-0 is critical for flex truncation to work */}
             <div className="flex-1 min-w-0 overflow-hidden">
@@ -164,7 +164,7 @@ export default function ShareModal({ open, onClose, post }) {
 
           {/* Footer branding */}
           <div className="mt-3 pt-3 border-t border-[#E2E8F0] dark:border-[#334155] flex items-center justify-center gap-2">
-            <img referrerPolicy="no-referrer" src={LOGO_URL} alt="" className="h-4" />
+            <img src={LOGO_URL} alt="" className="h-4" />
             <span className="text-[#6275AF] dark:text-[#94A3B8] text-[11px] font-medium">Join Discuss</span>
           </div>
         </div>

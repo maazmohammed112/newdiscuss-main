@@ -21,7 +21,7 @@ export default function ImagePreviewModal({ open, onClose, imageUrl, altText = '
           </button>
           
           {/* Image */}
-          <img referrerPolicy="no-referrer" src={imageUrl} 
+          <img src={imageUrl} 
             alt={altText}
             className="w-full h-auto max-h-[70vh] object-contain rounded-2xl shadow-2xl"
           />
