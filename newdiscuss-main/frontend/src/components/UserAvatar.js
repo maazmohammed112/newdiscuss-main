@@ -9,7 +9,7 @@
  *  browser sends none by default for file://) so it works. On production, the
  *  Netlify domain is sent as Referer and Google rejects it.
  *
- *  Fix: Set referrerPolicy="no-referrer" + crossOrigin="anonymous" on every
+ *  Fix: Set referrerPolicy="no-referrer" + on every
  *  profile image. This tells the browser to suppress the Referer and send a
  *  CORS pre-flight, which Google's CDN accepts.
  *
@@ -62,7 +62,7 @@ export default function UserAvatar({
       style={style}
       // ── The two attributes that fix the production CDN rejection ────────
       referrerPolicy="no-referrer"
-      crossOrigin="anonymous"
+     
       // ────────────────────────────────────────────────────────────────────
       onError={() => setFailed(true)}
       loading="lazy"

@@ -25,7 +25,7 @@ export default function UserSearchResult({
         className="flex items-center gap-3 flex-1 min-w-0 text-left"
       >
         {user.photo_url ? (
-          <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={user.photo_url}
+          <img referrerPolicy="no-referrer" src={user.photo_url}
             alt={user.username}
             className="w-10 h-10 rounded-full object-cover shrink-0"
           />

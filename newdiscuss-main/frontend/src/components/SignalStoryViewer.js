@@ -148,7 +148,7 @@ function StoryUrlPreview({ url }) {
               overflow: 'hidden',
             }}
           >
-            <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={meta.image}
+            <img referrerPolicy="no-referrer" src={meta.image}
               alt=""
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               onError={(e) => { e.target.style.display = 'none'; }}
@@ -458,7 +458,7 @@ function SignalStoryViewer({
           <div className="flex items-center gap-2.5">
             {/* Author avatar */}
             {currentGroup.authorPhotoUrl ? (
-              <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={currentGroup.authorPhotoUrl}
+              <img referrerPolicy="no-referrer" src={currentGroup.authorPhotoUrl}
                 alt={currentGroup.authorUsername}
                 className="w-9 h-9 rounded-full object-cover ring-2 ring-purple-400/60"
               />

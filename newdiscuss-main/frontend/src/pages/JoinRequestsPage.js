@@ -216,7 +216,7 @@ export default function JoinRequestsPage() {
                               <div key={request.userId} className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-700 discuss:bg-[#262626] rounded-lg">
                                 <div className="flex items-center gap-3">
                                   {details?.photo_url ? (
-                                    <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={details.photo_url} alt="" className="w-10 h-10 rounded-full" />
+                                    <img referrerPolicy="no-referrer" src={details.photo_url} alt="" className="w-10 h-10 rounded-full" />
                                   ) : (
                                     <div className="w-10 h-10 rounded-full bg-[#2563EB] discuss:bg-[#EF4444] flex items-center justify-center">
                                       <span className="text-white font-bold text-sm">

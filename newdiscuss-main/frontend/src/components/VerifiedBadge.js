@@ -27,8 +27,8 @@ function VerifiedSVG({ className }) {
       />
       <defs>
         <linearGradient id="vbg" x1="3" y1="2" x2="21" y2="22.5" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#2563EB" />
-          <stop offset="1" stopColor="#1d4ed8" />
+          <stop stopColor="#10B981" />
+          <stop offset="1" stopColor="#059669" />
         </linearGradient>
       </defs>
     </svg>

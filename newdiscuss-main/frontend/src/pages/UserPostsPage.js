@@ -92,7 +92,7 @@ export default function UserPostsPage() {
                     onClick={() => setShowImagePreview(true)}
                     className="relative group shrink-0"
                   >
-                    <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={userData.photo_url} alt={userData.username} className="w-14 h-14 rounded-full object-cover shadow-md discuss:shadow-none discuss:border discuss:border-[#333333] group-hover:opacity-90 transition-opacity" />
+                    <img referrerPolicy="no-referrer" src={userData.photo_url} alt={userData.username} className="w-14 h-14 rounded-full object-cover shadow-md discuss:shadow-none discuss:border discuss:border-[#333333] group-hover:opacity-90 transition-opacity" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                       <div className="bg-black/50 rounded-full p-1.5">
                         <User className="w-3.5 h-3.5 text-white" />

@@ -96,7 +96,7 @@ export default function SignalStoryCreator({ onClose, onCreated }) {
         {/* Author row */}
         <div className="flex items-center gap-2.5 px-5 pb-3">
           {user?.photo_url ? (
-            <img referrerPolicy="no-referrer" crossOrigin="anonymous" src={user.photo_url}
+            <img referrerPolicy="no-referrer" src={user.photo_url}
               alt={user.username}
               className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-400/40"
             />
