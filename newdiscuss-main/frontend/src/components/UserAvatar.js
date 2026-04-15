@@ -69,9 +69,9 @@ function formatUrl(url) {
   if (url === 'null' || url === 'undefined') return null;
   if (url.startsWith('//')) return `https:${url}`;
   if (url.startsWith('lh3.googleusercontent')) return `https://${url}`;
-  // Sometimes Google appends size param which causes 404, stripping it to get original size
+  // Google requires the size parameter or it may return 404. We ensure it's a good size.
   if (url.includes('googleusercontent.com') && url.includes('=s')) {
-    return url.split('=s')[0];
+    return url.replace(/=s\d+-?[a-zA-Z]*/, '=s192-c');
   }
   return url;
 }

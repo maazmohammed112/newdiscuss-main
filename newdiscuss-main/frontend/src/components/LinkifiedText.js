@@ -120,10 +120,10 @@ export default function LinkifiedText({ text, className = '' }) {
                 key={index}
                 href={part.href}
                 onClick={(e) => handleLinkClick(e, part.href, part.content)}
-                className="text-[#2563EB] dark:text-[#60A5FA] discuss:text-[#EF4444] discuss-black:text-[#FF007F] hover:underline inline-flex items-center gap-0.5 transition-colors"
+                className="text-[#2563EB] dark:text-[#60A5FA] discuss:!text-[#EF4444] discuss-black:!text-[#EF4444] font-medium hover:underline inline-flex items-center gap-0.5 transition-colors group"
                 title={part.content} // Show full URL on hover
               >
-                {part.displayContent}
+                <span className="group-hover:bg-[#EF4444]/10 discuss-black:group-hover:bg-[#EF4444]/20 rounded px-0.5">{part.displayContent}</span>
                 <ExternalLink className="w-3 h-3 shrink-0" />
               </a>
             );

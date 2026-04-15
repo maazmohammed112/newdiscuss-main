@@ -96,28 +96,21 @@ export default function LinkPreview({ url, onClick }) {
 
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
-    const apiUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}&palette=false&adblock=false&screenshot=false`;
+    const apiUrl = `https://api.dub.co/metatags?url=${encodeURIComponent(url)}`;
 
     fetch(apiUrl, { signal: controller.signal })
       .then(r => r.ok ? r.json() : Promise.reject(new Error('Non-OK response')))
       .then(json => {
         clearTimeout(timeout);
-        if (json?.status !== 'success' || !json?.data) {
-          writeCache(url, null);
-          setState('error');
-          return;
-        }
-        const { title, description, url: finalUrl, publisher, image } = json.data;
-        if (!title && !description) {
-          writeCache(url, null);
+        if (!json || (!json.title && !json.description)) {
           setState('error');
           return;
         }
         const result = {
-          title:       title       || '',
-          description: description || '',
-          domain:      publisher   || (() => { try { return new URL(finalUrl || url).hostname.replace('www.', ''); } catch { return ''; } })(),
-          imageUrl:    image?.url  || null,
+          title:       json.title       || '',
+          description: json.description || '',
+          domain:      (() => { try { return new URL(url).hostname.replace('www.', ''); } catch { return ''; } })(),
+          imageUrl:    json.image       || null,
         };
         writeCache(url, result);
         setMeta(result);
@@ -125,7 +118,6 @@ export default function LinkPreview({ url, onClick }) {
       })
       .catch(() => {
         clearTimeout(timeout);
-        writeCache(url, null);
         setState('error');
       });
 
